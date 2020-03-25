@@ -1,3 +1,7 @@
+'''
+Utility functions used across multiple modules.
+'''
+
 def all_bits(bit_count: int) -> int:
     '''
     Args:

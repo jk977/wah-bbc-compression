@@ -1,3 +1,8 @@
+'''
+Functions required by the assignment description. Builds on top of the other
+modules in the package to produce the required functions.
+'''
+
 import logging
 import operator as op
 import os

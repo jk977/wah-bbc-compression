@@ -1,3 +1,8 @@
+'''
+Command-line interface for compression algorithms. Run ``python main.py -h``
+for program usage.
+'''
+
 import logging
 import os
 

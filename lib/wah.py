@@ -1,3 +1,8 @@
+'''
+Contains the implementation of the WAH algorithm, in addition to WAH-related
+functions.
+'''
+
 import logging
 
 from typing import Final, Optional, Tuple

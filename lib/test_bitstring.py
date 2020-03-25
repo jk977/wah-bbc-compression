@@ -1,3 +1,7 @@
+'''
+Unit tests for BitString class.
+'''
+
 import itertools as it
 import unittest as ut
 

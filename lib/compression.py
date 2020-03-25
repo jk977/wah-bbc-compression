@@ -1,3 +1,7 @@
+'''
+Contains the base class for compression algorithms.
+'''
+
 import logging
 import re
 

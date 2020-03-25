@@ -1,3 +1,8 @@
+'''
+Contains the implementation of the BBC algorithm, in addition to BBC-related
+functions.
+'''
+
 import logging
 
 from typing import Final, Optional

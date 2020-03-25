@@ -1,3 +1,8 @@
+'''
+Contains BitString implementation used to represent a string of bits in
+compression algorithms.
+'''
+
 from typing import Any, Final, Optional, Tuple
 from lib.util import all_bits
 

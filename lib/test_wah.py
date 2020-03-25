@@ -1,3 +1,7 @@
+'''
+Unit tests for WAH implementation.
+'''
+
 import itertools as it
 import unittest as ut
 
