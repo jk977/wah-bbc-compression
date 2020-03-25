@@ -25,8 +25,7 @@ def literals_length(index):
 
 
 def dirty_bit_pos(index):
-    tail, encoded = bbc.dirty_bit_pos(BitString(index))
-    return str(tail), encoded and str(encoded)
+    return bbc.dirty_bit_pos(BitString(index))
 
 
 create_atom = bbc.create_atom
@@ -79,7 +78,24 @@ class TestBBC(ut.TestCase):
                 self.assertEqual(literals_length(literal * i), 15)
 
     def test_dirty_bit_pos(self):
-        pass
+        # test offset bytes
+        self.assertEqual(dirty_bit_pos('10000000'), 0)
+        self.assertEqual(dirty_bit_pos('01000000'), 1)
+        self.assertEqual(dirty_bit_pos('00100000'), 2)
+        self.assertEqual(dirty_bit_pos('00010000'), 3)
+        self.assertEqual(dirty_bit_pos('00001000'), 4)
+        self.assertEqual(dirty_bit_pos('00000100'), 5)
+        self.assertEqual(dirty_bit_pos('00000010'), 6)
+        self.assertEqual(dirty_bit_pos('00000001'), 7)
+
+        for bits in it.product(*it.repeat(['0', '1'], 8)):
+            # test non-offset bytes by getting all possible bytes
+            byte = ''.join(bits)
+
+            if byte.count('1') == 1:
+                continue
+
+            self.assertEqual(dirty_bit_pos(byte), -1)
 
     def test_create_atom(self):
         pass
