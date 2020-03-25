@@ -9,6 +9,7 @@ import lib.bbc as bbc
 
 from lib.bitstring import BitString
 from lib.bbc import BBC
+from lib.util import all_bits
 
 
 ############################
@@ -37,7 +38,16 @@ def compress(index):
 
 class TestBBC(ut.TestCase):
     def test_gap_length(self):
-        pass
+        gap_max: Final = all_bits(15)
+
+        for i in range(gap_max + 1):
+            # test within the max length
+            self.assertEqual(gap_length('00000000' * i), i)
+
+        for i in range(1, 11):
+            # test over the max length
+            n = gap_max + i
+            self.assertEqual(gap_length('00000000' * n), gap_max)
 
     def test_literals_length(self):
         pass

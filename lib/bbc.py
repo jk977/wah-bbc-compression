@@ -26,7 +26,9 @@ def gap_length(bs: BitString) -> int:
         bs: the BitString to check for gaps.
 
     Returns:
-        the number of gap bytes at the beginning of ``bs``.
+        the number of gap bytes at the beginning of ``bs``. If the number
+        of gap bytes exceeds the number that can be stored by a BBC atom,
+        returns the max number of gaps that can be stored.
     '''
 
     gap_bits: Final = bs.run_length(0)
