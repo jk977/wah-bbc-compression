@@ -4,17 +4,16 @@ functions.
 '''
 
 import logging
-
 from typing import Final, Optional, Tuple
 
-from lib.bitstring import BitString
 from lib.compression import CompressionBase
+from lib.util import binstr
 
 
-def run_length(bs: BitString, word_size: int) -> int:
+def run_length(bs: str, word_size: int) -> int:
     '''
     Args:
-        bs: the BitString to analyze.
+        bs: the str to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -24,8 +23,13 @@ def run_length(bs: BitString, word_size: int) -> int:
         possible length is returned.
     '''
 
+    if len(bs) == 0:
+        return 0
+
     section_size: Final = word_size - 1
-    run_bits: Final = bs.run_length()
+    toggle_bit: Final = '0' if bs[0] == '1' else '1'
+    bit_idx: Final = bs.find(toggle_bit)
+    run_bits: Final = bit_idx if bit_idx >= 0 else len(bs)
 
     if run_bits < section_size:
         return 0
@@ -36,15 +40,14 @@ def run_length(bs: BitString, word_size: int) -> int:
     return min(max_run_words, run_words)
 
 
-def encode_run(bs: BitString, word_size: int) \
-        -> Tuple[BitString, BitString]:
+def encode_run(bs: str, word_size: int) -> Tuple[str, str]:
     '''
     Encode the run at the beginning of ``bs``. Assumes that a run is present,
     and that the run's length is in the range ``(word_size - 1)`` to
     ``(word_size - 1) * (2**(word_size - 2) - 1)``.
 
     Args:
-        bs: the BitString to analyze.
+        bs: the str to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -58,23 +61,19 @@ def encode_run(bs: BitString, word_size: int) \
     # store length in the least significant bits of resulting
     # word, set the first bit to 1 to signify a run, and set
     # the second bit to the type of run.
-    result = BitString(runs, word_size)
-    result[0] = 1
-    result[1] = bs[0]
-
+    result = '1{}{}'.format(bs[0], binstr(runs, section_size - 1))
     logging.debug('Encoded {}-run of {} words'.format(bs[0], runs))
 
     return bs[section_size * runs:], result
 
 
-def encode_literal(bs: BitString, word_size: int) \
-        -> Tuple[BitString, BitString]:
+def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
     '''
     Encode the next ``(word_size - 1)`` bits as a literal, padding the right
     with zeroes as needed.
 
     Args:
-        bs: the BitString to analyze.
+        bs: the str to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -85,16 +84,11 @@ def encode_literal(bs: BitString, word_size: int) \
         with zeroes on the right.
     '''
 
+    # set the first bit to 0, then add the literal, padding right with zeroes
     section_size: Final = word_size - 1
+    word = '0{{:<0{}s}}'.format(section_size).format(bs[:section_size])
 
-    # set the first bit to 0, then add the literal
-    header = BitString(0b0, 1)
-    literal = BitString(bs[0:section_size])
-
-    # pad the right with zeroes if literal is too short
-    literal <<= section_size - len(literal)
-
-    return bs[section_size:], header + literal
+    return bs[section_size:], word
 
 
 class WAH(CompressionBase):
@@ -107,15 +101,15 @@ class WAH(CompressionBase):
 
     @staticmethod
     def compress(bs, word_size=8):
-        if not isinstance(bs, BitString):
-            bs = BitString(bs)
+        if not isinstance(bs, str):
+            bs = str(bs)
 
         logging.info('Compressing {} bits with WAH '
                      '(word size: {})'.format(len(bs), word_size))
         logging.debug('Bits: {}'.format(bs))
 
         section_size: Final = word_size - 1
-        result = BitString()
+        result = ''
 
         input_length: Final = len(bs)
         run_count = 0

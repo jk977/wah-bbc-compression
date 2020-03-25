@@ -8,8 +8,6 @@ import re
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from lib.bitstring import BitString
-
 
 class CompressionBase(ABC):
     '''
@@ -24,13 +22,14 @@ class CompressionBase(ABC):
 
     @staticmethod
     @abstractmethod
-    def compress(bs: BitString, word_size: Optional[int]) -> BitString:
+    def compress(bs, word_size: Optional[int]) -> str:
         '''
         Compress the given bitmap index with the specified word size,
         if applicable.
 
         Args:
-            bs: a BitString, or an object that can construct a BitString.
+            bs: a string of zeroes and ones, or an object that can construct
+                a string. **The format of ``bs`` will not be checked.**
             word_size: the word size used in the algorithm.
 
         Returns:
@@ -63,7 +62,7 @@ class CompressionBase(ABC):
         with open(out_file, 'w') as ofile:
             for i in range(col_count):
                 logging.debug('Compressing column {}'.format(i))
-                column = BitString(content[i::col_count])
+                column = content[i::col_count]
                 compressed = cls.compress(column, word_size)
-                ofile.write(str(compressed))
+                ofile.write(compressed)
                 ofile.write('\n')
