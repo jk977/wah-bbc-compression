@@ -36,6 +36,10 @@ def compress(index):
     return str(BBC.compress(index))
 
 
+##############
+# unit tests #
+##############
+
 class TestBBC(ut.TestCase):
     def test_gap_length(self):
         gap_max: Final = all_bits(15)

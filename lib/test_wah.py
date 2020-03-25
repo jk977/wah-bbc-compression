@@ -33,6 +33,10 @@ def compress(index, word_size):
     return str(WAH.compress(index, word_size))
 
 
+##############
+# unit tests #
+##############
+
 class TestWAH(ut.TestCase):
     def test_run_length(self):
         for ws in range(8, 65):
