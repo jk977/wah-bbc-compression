@@ -11,33 +11,32 @@ class BitString:
     '''
     Represents a string of bits. Although the assignment description
     didn't require bitwise operations to be used, this class was an
-    exercise in using magic methods in addition to Python's duck typing to
-    allow a component (in this case, Python strings vs. BitStrings) to be
-    swapped out with minimal changes to the rest of the code.
+    exercise in using magic methods and bitwise operations in Python.
 
     The behavior of the constructor depends on the arguments provided.
 
     Args:
-        args: If length is 0, an empty BitString is created.
+        args: If ``len(args)`` is 0, an empty BitString is created.
 
-              If length is 1, the parameter is read as an ASCII string of
-              bits, or is passed to from_iter() if not a string.
+              If ``len(args)`` is 1, the parameter is read as an ASCII string
+              of bits, or is passed to ``from_iter()`` if not a string.
 
-              If length is 2, a BitString of size args[1] is created from
-              args[0], where args[0] is either an object compatible
-              with from_iter() or an int, representing a raw string of
-              bits. If there are more bit-like objects in arg[0] than the
-              given length, only the most significant bits are taken.
+              If ``len(args)`` is 2, a BitString of size ``args[1]`` is created
+              from ``args[0]``, where ``args[0]`` is either an object
+              compatible with ``from_iter()`` or an ``int``, representing a raw
+              string of bits. If there are more bit-like objects in ``args[0]``
+              than the given length, the first ``args[1]`` bits are taken from
+              ``args[0]``.
 
     Attributes:
-        bits (int): the raw bits of the BitString.
-        length (int): the length of the BitString.
+        bits (int): The raw bits of the BitString.
+        length (int): The length of the BitString.
     '''
 
     def __init__(self, *args):
         # NOTE: This could be implemented in a cleaner way with keyword
         #       arguments, but as a mostly-internal structure, this is
-        #       sufficient for now.
+        #       sufficient and leads to less boilerplate ``key=val`` parameters
 
         if len(args) > 2:
             raise TypeError('constructor takes at most 2 arguments')
@@ -87,8 +86,8 @@ class BitString:
             bits: an iterable object containing int-like values. 0-like values
                   are considered an unset bit, and any other value is
                   considered a set bit.
-            length: the length of ``bits``. If negative, all of `bits` will be
-                    used.
+            length: the length of ``bits``. If negative or not provided, all of
+                    ``bits`` is used.
 
         Returns:
             a BitString constructed from ``bits``.
