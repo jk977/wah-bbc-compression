@@ -50,7 +50,30 @@ class TestBBC(ut.TestCase):
             self.assertEqual(gap_length('00000000' * n), gap_max)
 
     def test_literals_length(self):
-        pass
+        for i in range(100):
+            # test strings without literals
+            zeroes = '0' * i
+            ones = '1' * i
+            offs = ('00100000' + '00000100') * i
+
+            self.assertEqual(literals_length(zeroes), 0)
+            self.assertEqual(literals_length(ones), 0)
+            self.assertEqual(literals_length(offs), 0)
+
+        a = '00000011'
+        b = '10000001'
+        c = '10001001'
+        d = '10011001'
+        e = '11111111'
+
+        for literal in a, b, c, d, e:
+            # test single-byte literals
+            self.assertEqual(literals_length(literal), 1)
+
+        for literal in a, b, c, d, e:
+            for i in range(100):
+                # test multi-byte literals
+                self.assertEqual(literals_length(literal * i), i)
 
     def test_dirty_bit_pos(self):
         pass
