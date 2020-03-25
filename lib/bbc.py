@@ -164,6 +164,17 @@ def _create_atom(gap_count: int,
 
 
 class BBC(CompressionBase):
+    '''
+    BBC algorithm implementation. The following modifications have been made to
+    the BBC patent's algorithm description:
+
+    1. Gap length is encoded in three bits rather than five.
+    2. The last field of the header byte uses four bits rather than three.
+    3. Instead of using a split for indicating if there are literals or an
+       offset byte, the fourth bit in the header byte is a flag for whether or
+       not there is an offset byte.
+    '''
+
     @staticmethod
     def compress(bs, word_size=None):
         if not isinstance(bs, BitString):

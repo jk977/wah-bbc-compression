@@ -10,7 +10,7 @@ BS = BitString
 class TestBS(ut.TestCase):
     def test_init(self):
         '''
-        Test ``BitString.__init__``
+        Test ``BitString.__init__()``
         '''
 
         for i in range(0, 1000):
@@ -46,7 +46,7 @@ class TestBS(ut.TestCase):
 
     def test_eq(self):
         '''
-        Test ``BitString.__eq__``
+        Test ``BitString.__eq__()``
         '''
 
         for i in range(0, 500):
@@ -60,7 +60,7 @@ class TestBS(ut.TestCase):
 
     def test_str(self):
         '''
-        Test ``BitString.__str__``
+        Test ``BitString.__str__()``
         '''
 
         for i in range(0, 1000):
@@ -87,7 +87,7 @@ class TestBS(ut.TestCase):
 
     def test_add(self):
         '''
-        Test ``BitString.__add__``
+        Test ``BitString.__add__()``
         '''
 
         a = BS(0b110, 3)
@@ -98,7 +98,7 @@ class TestBS(ut.TestCase):
 
     def test_shift(self):
         '''
-        Test ``BitString.__lshift__`` and ``BitString.__rshift__``
+        Test ``BitString.__lshift__()`` and ``BitString.__rshift__()``
         '''
 
         self.assertEqual(BS(0b1, 0) << 5, BS(0b00000, 5))
@@ -111,7 +111,7 @@ class TestBS(ut.TestCase):
 
     def test_slice(self):
         '''
-        Test ``BitString.__getitem__`` with slices
+        Test ``BitString.__getitem__()`` with slices
         '''
 
         s = '0110100'

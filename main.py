@@ -12,7 +12,7 @@ def get_basename(path: str) -> str:
         path: The path to process.
 
     Returns:
-        `path` stripped of any parent directories.
+        ``path`` stripped of any parent directories.
     '''
 
     return os.path.split(path)[1]
@@ -20,10 +20,10 @@ def get_basename(path: str) -> str:
 
 def process_args():
     '''
-    Process the command line arguments using the argparse library.
+    Process the command line arguments using the ``argparse`` library.
 
     Returns:
-        The environment given by ArgumentParser.parse_args.
+        The environment given by ``ArgumentParser.parse_args()``.
     '''
 
     parser = ArgumentParser(description='Index and compress data files.')
@@ -47,7 +47,7 @@ def process_args():
 
     logs.add_argument('--log-level', type=str, dest='log_level',
                       default='WARNING', help='Log level (default: WARNING; '
-                      'see logging.setLevel)')
+                      'see logging.setLevel())')
     logs.add_argument('--log-file', type=str, dest='log_file',
                       help='Output logs to the given file instead of stdout.')
 

@@ -93,6 +93,13 @@ def encode_literal(bs: BitString, word_size: int) \
 
 
 class WAH(CompressionBase):
+    '''
+    WAH algorithm implementation. The primary difference between this
+    implementation and the WAH patent's algorithm description is that literals
+    smaller than the word size are encoded by storing the literal in the most
+    significant bits of the output word, then padding the right with zeroes.
+    '''
+
     @staticmethod
     def compress(bs, word_size=8):
         if not isinstance(bs, BitString):

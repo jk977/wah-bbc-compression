@@ -32,7 +32,7 @@ def compress(index, word_size):
 class TestWAH(ut.TestCase):
     def test_run_length(self):
         '''
-        Test ``_run_length``
+        Test ``_run_length()``
         '''
 
         for word_size in range(8, 65):
@@ -55,7 +55,7 @@ class TestWAH(ut.TestCase):
 
     def test_encode_run(self):
         '''
-        Test ``_encode_run``
+        Test ``_encode_run()``
         '''
 
         self.assertEqual(encode_run('111110', 4), ('110', '1101'))
@@ -84,7 +84,7 @@ class TestWAH(ut.TestCase):
 
     def test_encode_literal(self):
         '''
-        Test ``_encode_literal``
+        Test ``_encode_literal()``
         '''
 
         for i in range(3, 65):
@@ -115,7 +115,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_literals(self):
         '''
-        Test ``WAH.compress`` on strings of literal bytes
+        Test ``WAH.compress()`` on strings of literal bytes
         '''
 
         for i in range(3, 65):
@@ -137,7 +137,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_runs(self):
         '''
-        Test ``WAH.compress`` on runs of bits
+        Test ``WAH.compress()`` on runs of bits
         '''
 
         for word_size in range(8, 65):
@@ -155,7 +155,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_long(self):
         '''
-        Test ``WAH.compress`` on more complex examples
+        Test ``WAH.compress()`` on more complex examples
         '''
 
         # WAH example from class slides.
