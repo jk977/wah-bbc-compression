@@ -20,7 +20,7 @@ header_gap_max: Final = all_bits(header_gap_bits)  # max gap size in header
 max_gap_bits: Final = 2 * bits_per_byte - 1        # max bits used for gap size
 
 
-def _gap_byte_count(bs: BitString) -> int:
+def gap_length(bs: BitString) -> int:
     '''
     Args:
         bs: the BitString to check for gaps.
@@ -38,7 +38,7 @@ def _gap_byte_count(bs: BitString) -> int:
     return min(gap_max, gap_bits // bits_per_byte)
 
 
-def _dirty_bit_pos(bs: BitString) -> int:
+def dirty_bit_pos(bs: BitString) -> int:
     '''
     Checks if the next byte in ``bs`` contains only a single set bit
     (i.e., is an offset, or dirty, byte).
@@ -59,7 +59,7 @@ def _dirty_bit_pos(bs: BitString) -> int:
         return bstr.find('1')
 
 
-def _literal_byte_count(bs: BitString) -> int:
+def literals_length(bs: BitString) -> int:
     '''
     Returns:
         the number of literal (i.e., non-gap, non-dirty) bytes at the
@@ -87,8 +87,8 @@ def _literal_byte_count(bs: BitString) -> int:
     lits = 0
 
     while len(bs) > 0 \
-            and _gap_byte_count(bs) == 0 \
-            and _dirty_bit_pos(bs) == -1:
+            and gap_length(bs) == 0 \
+            and dirty_bit_pos(bs) == -1:
         bs = bs[bits_per_byte:]
         lits += 1
 
@@ -96,10 +96,10 @@ def _literal_byte_count(bs: BitString) -> int:
     return min(lits, max_lits)
 
 
-def _create_atom(gap_count: int,
-                 is_dirty: bool,
-                 special: int,
-                 literal: Optional[BitString] = None) \
+def create_atom(gap_count: int,
+                is_dirty: bool,
+                special: int,
+                literal: Optional[BitString] = None) \
         -> BitString:
     '''
     Creates the next compressed atom, consisting of a header byte
@@ -200,8 +200,8 @@ class BBC(CompressionBase):
         while len(bs) > 0:
             logging.debug('Remaining bits: {}'.format(bs))
 
-            # determine the number of gaps
-            gap_bytes = _gap_byte_count(bs)
+            # determine the number of gaps and skip past them
+            gap_bytes = gap_length(bs)
             bs = bs[gap_bytes * bits_per_byte:]
 
             if gap_bytes > 0:
@@ -209,7 +209,7 @@ class BBC(CompressionBase):
                 gap_count += 1
 
             # determine the type of byte following the gaps
-            dirty_bit = _dirty_bit_pos(bs)
+            dirty_bit = dirty_bit_pos(bs)
             is_dirty = (dirty_bit != -1)
             literals = None
 
@@ -223,7 +223,7 @@ class BBC(CompressionBase):
             else:
                 # literals encountered; encode as many as possible then skip
                 # past them
-                current_lit_count = _literal_byte_count(bs)
+                current_lit_count = literals_length(bs)
                 literals = bs[:current_lit_count * bits_per_byte]
                 bs = bs[current_lit_count * bits_per_byte:]
                 special = current_lit_count
@@ -232,7 +232,7 @@ class BBC(CompressionBase):
                 lit_count += current_lit_count
 
             # encode the gaps and trailing byte(s) in an atom
-            result += _create_atom(gap_bytes, is_dirty, special, literals)
+            result += create_atom(gap_bytes, is_dirty, special, literals)
             atom_count += 1
 
         # log the compression metadata

@@ -35,10 +35,6 @@ def compress(index, word_size):
 
 class TestWAH(ut.TestCase):
     def test_run_length(self):
-        '''
-        Test ``_run_length()``
-        '''
-
         for word_size in range(8, 65):
             self.assertEqual(run_length('', word_size), 0)
             self.assertEqual(run_length('0', word_size), 0)
@@ -58,10 +54,6 @@ class TestWAH(ut.TestCase):
         self.assertEqual(run_length('0'*15*16384, 16), 16383)
 
     def test_encode_run(self):
-        '''
-        Test ``_encode_run()``
-        '''
-
         self.assertEqual(encode_run('111110', 4), ('110', '1101'))
         self.assertEqual(encode_run('111111', 4), ('', '1'*3 + '0'))
         self.assertEqual(encode_run('111111111', 4), ('', '1'*4))
@@ -87,10 +79,6 @@ class TestWAH(ut.TestCase):
                          ('', '1' + '0'*23 + '10000000'))
 
     def test_encode_literal(self):
-        '''
-        Test ``_encode_literal()``
-        '''
-
         for i in range(3, 65):
             self.assertEqual(encode_literal('', i), ('', '0'*i))
             self.assertEqual(encode_literal('1', i), ('', '01' + '0'*(i - 2)))
