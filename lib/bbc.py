@@ -66,31 +66,11 @@ def literals_length(bs: BitString) -> int:
     Returns:
         the number of literal (i.e., non-gap, non-dirty) bytes at the
         beginning of bs.
-
-    Note:
-        Compression would likely be a little more efficient if a dirty
-        byte was allowed as a literal, but the BBC patent states that
-        an MBYTE (i.e., literal byte) is classified as a byte that is
-        not a GBYTE (gap byte) or OBYTE (offset/dirty byte).
-
-        For example:
-
-            01100000 00000001 01100000
-
-        becomes
-
-            00000001 01100000 00010001 00000001 01100000
-
-        instead of
-
-            00000011 01100000 00000001 01100000
     '''
 
     lits = 0
 
-    while len(bs) > 0 \
-            and gap_length(bs) == 0 \
-            and dirty_bit_pos(bs) == -1:
+    while len(bs) > 0 and gap_length(bs) == 0:
         bs = bs[bits_per_byte:]
         lits += 1
 
@@ -150,15 +130,14 @@ def create_atom(gap_count: int,
     elif all_bits(bits_per_byte - 1) < gap_count <= all_bits(max_gap_bits):
         logging.debug('Two tail bytes needed.')
 
-        # first bit of first byte is a flag indicating there's another
-        # byte, the rest of the byte is the lower bits of gap_count
-        gap_length_bytes = BitString(gap_count, bits_per_byte)
-        gap_length_bytes[0] = 1
-        gap_count >>= bits_per_byte - 1
+        # the first bit of first byte is a flag indicating there's another
+        # byte, and the rest of the byte is the upper bits of gap_count.
+        # the second byte is the lower 8 bits.
+        gaps = BitString(gap_count >> bits_per_byte, bits_per_byte)
+        gaps[0] = 1
+        gaps += BitString(gap_count, bits_per_byte)
 
-        # next byte is the rest of gap_count
-        gap_length_bytes += BitString(gap_count, bits_per_byte)
-        result += gap_length_bytes
+        result += gaps
     elif all_bits(max_gap_bits) < gap_count:
         raise ValueError('too many gaps: {}'.format(gap_count))
 
@@ -180,6 +159,9 @@ class BBC(CompressionBase):
     3. Instead of using a split for indicating if there are literals or an
        offset byte, the fourth bit in the header byte is a flag for whether or
        not there is an offset byte.
+    4. For encoding gap length across two bytes, the first byte contains the
+       most significant bits rather than the least significant bits.
+    5. Offset bytes are allowed as literals.
     '''
 
     @staticmethod
