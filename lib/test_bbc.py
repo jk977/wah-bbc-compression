@@ -99,6 +99,7 @@ class TestBBC(ut.TestCase):
                 self.assertEqual(dirty_bit_pos(byte), -1)
 
     def test_create_atom(self):
+        # empty bitstring
         e = BitString()
 
         # test single-byte atom gap length
@@ -142,17 +143,21 @@ class TestBBC(ut.TestCase):
             expected = gap_prefix + '10001'
             self.assertEqual(compress(bits), expected)
 
-            # test small gap with literals
+            # gap with literals
             bits = '00000000' * gaps + '11100000' + '00000111'
             expected = gap_prefix + '00010' + '11100000' + '00000111'
             self.assertEqual(compress(bits), expected)
 
-            # test small gap with offset byte, then literals
+            # gap with offset byte, then literals
             bits = '00000000' * gaps + '00000001' + '11100000' + '00000111'
-            expected = gap_prefix \
-                + '10111' + '00000010' \
-                + '11100000' + '00000111'
+            expected = gap_prefix + '10111' \
+                + '00000010' + '11100000' + '00000111'
+            self.assertEqual(compress(bits), expected)
 
+            # gap with literals, then offset byte
+            bits = '00000000' * gaps + '11100000' + '00000111' + '01000000'
+            expected = gap_prefix + '00011' \
+                + '11100000' + '00000111' + '01000000'
             self.assertEqual(compress(bits), expected)
 
         # test 2-byte gaps
@@ -167,15 +172,21 @@ class TestBBC(ut.TestCase):
             expected = '11110010' + gap_bin
             self.assertEqual(compress(bits), expected)
 
-            # test small gap with literals
+            # gap with literals
             bits = '00000000' * gaps + '10010010' + '01001001'
             expected = '11100010' + gap_bin + '10010010' + '01001001'
             self.assertEqual(compress(bits), expected)
 
-            # test small gap with offset byte, then literals
+            # gap with offset byte, then literals
             bits = '00000000' * gaps + '10000000' + '10010010' + '01001001'
             expected = '11110000' + gap_bin \
                 + '00000010' + '10010010' + '01001001'
+            self.assertEqual(compress(bits), expected)
+
+            # gap with literals, then offset byte
+            bits = '00000000' * gaps + '10010010' + '01001001' + '10000000'
+            expected = '11100011' + gap_bin \
+                + '10010010' + '01001001' + '10000000'
             self.assertEqual(compress(bits), expected)
 
         # test large gap
