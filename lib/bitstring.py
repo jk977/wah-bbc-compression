@@ -35,7 +35,10 @@ class BitString:
     '''
 
     def __init__(self, *args):
-        # TODO use keyword args instead of positional
+        # NOTE: This could be implemented in a cleaner way with keyword
+        #       arguments, but as a mostly-internal structure, this is
+        #       sufficient for now.
+
         if len(args) > 2:
             raise TypeError('constructor takes at most 2 arguments')
         elif len(args) == 2:
