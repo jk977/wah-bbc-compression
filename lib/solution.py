@@ -70,7 +70,7 @@ def _index_row(row: str) -> str:
     age_cols: Final = 0b1000000000 >> (int(age) - 1) // 10
     age_bits: Final = binstr(age_cols, age_width)
 
-    # set of 2 bits representing whether or not the animal was adopted
+    # set of 2 bits representing whether or not the animal is adopted
     adopted_cols: Final = 0b10 if adopted == 'True' else 0b01
     adopted_bits: Final = binstr(adopted_cols, adopted_width)
 
@@ -89,8 +89,8 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
                    before indexing.
 
     Returns:
-        the path to the resulting index file. This will be ``out_file``
-        if ``sort_data`` is False, or ``out_file`` appended with '_sorted'.
+        the path to the resulting index file. This is ``out_file`` if
+        ``sort_data`` is ``False``, or ``out_file`` appended with '_sorted'
         otherwise.
     '''
 
@@ -128,7 +128,7 @@ def compress_index(in_file: str, out_dir: str, method: str,
         the path to the resulting compressed file.
 
     Raises:
-        ValueError: if ``word_size`` is None when an int was expected.
+        ValueError: if ``word_size`` is ``None`` when an ``int`` is expected.
         NotImplementedError: if ``method`` is not a recognized compression
                              algorithm.
     '''

@@ -1,11 +1,11 @@
 '''
-Contains the implementation of the BBC algorithm, in addition to BBC-related
-functions.
+Contains an implementation of the byte-aligned bitmap compression (BBC)
+algorithm, in addition to BBC-related functions.
 '''
 
 import logging
 
-from typing import Final, Optional, Tuple
+from typing import Final, Tuple
 
 from lib.compression import CompressionBase
 from lib.util import all_bits, binstr, chunks_of
@@ -99,7 +99,7 @@ def create_atom(gap_count: int,
         gap_count: the number of gaps to encode in the atom.
         is_dirty: whether or not the lower bits of the header byte in the
                   atom represents a dirty bit position.
-        special: if is_dirty is True, represents the position of the dirty
+        special: if is_dirty is ``True``, represents the position of the dirty
                   bit in the last byte encoded by the atom, zero-indexed
                   from the right. Otherwise, ``special`` is a 4-bit value
                   representing the amount of trailing literals given by
@@ -111,7 +111,7 @@ def create_atom(gap_count: int,
         the parameters.
 
     Raises:
-        ValueError: if ``literal`` is None when a str was expected,
+        ValueError: if ``literal`` is ``None`` when a ``str`` is expected,
                     or if ``gap_count`` is too large.
     '''
 

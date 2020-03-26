@@ -1,10 +1,10 @@
 '''
-Contains the implementation of the WAH algorithm, in addition to WAH-related
-functions.
+Contains the implementation of the word-aligned hybrid (WAH) compression
+algorithm, in addition to WAH-related functions.
 '''
 
 import logging
-from typing import Final, Optional, Tuple
+from typing import Final, Tuple
 
 from lib.compression import CompressionBase
 from lib.util import binstr

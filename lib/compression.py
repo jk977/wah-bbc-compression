@@ -29,11 +29,16 @@ class CompressionBase(ABC):
 
         Args:
             bs: a string of zeroes and ones, or an object that can construct
-                a string. **The format of ``bs`` will not be checked.**
+                a string.
             word_size: the word size used in the algorithm.
 
         Returns:
             the compressed ``bs``.
+
+        Note:
+            The format of ``bs`` is not checked. If ``bs`` contains
+            characters other than '0' and '1', the resulting string is
+            meaningless.
         '''
 
         pass
