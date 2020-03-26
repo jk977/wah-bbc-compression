@@ -21,15 +21,14 @@ header_gap_max: Final = all_bits(header_gap_bits)  # max gap size in header
 max_gap_bits: Final = 2 * bits_per_byte - 1        # max bits used for gap size
 
 
-def gap_length(bs: str) -> int:
+def get_gaps(bs: str) -> Tuple[str, int]:
     '''
     Args:
         bs: the string to check for gaps.
 
     Returns:
-        the number of gap bytes at the beginning of ``bs``. If the number
-        of gap bytes exceeds the number that can be stored by a BBC atom,
-        returns the max number of gaps that can be stored.
+        a tuple ``(tail, gaps)``, where ``tail`` is ``bs`` without the leading
+        gaps and ``gaps`` is the number of gap bytes to encode.
     '''
 
     bit_idx: Final = bs.find('1')
@@ -37,9 +36,12 @@ def gap_length(bs: str) -> int:
     gap_max: Final = all_bits(max_gap_bits)
 
     if gap_bits < bits_per_byte:
-        return 0
+        return bs, 0
 
-    return min(gap_max, gap_bits // bits_per_byte)
+    # if the number of gaps found is greater than the amount that can be
+    # stored in an atom, only take what can be stored
+    gaps: Final = min(gap_max, gap_bits // bits_per_byte)
+    return bs[gaps * bits_per_byte:], gaps
 
 
 def dirty_bit_pos(bs: str) -> int:
@@ -88,7 +90,7 @@ def get_literals(bs: str) -> Tuple[str, str]:
     return bs[count * bits_per_byte:], literals
 
 
-def create_atom(gap_count: int,
+def create_atom(gaps: int,
                 is_dirty: bool,
                 special: int,
                 literals: str = '') \
@@ -98,7 +100,7 @@ def create_atom(gap_count: int,
     and followed by trailing literals if is_dirty is false.
 
     Args:
-        gap_count: the number of gaps to encode in the atom.
+        gaps: the number of gaps to encode in the atom.
         is_dirty: whether or not the lower bits of the header byte in the
                   atom represent a dirty bit position.
         special: if ``is_dirty`` is ``True``, represents the position of the
@@ -114,44 +116,40 @@ def create_atom(gap_count: int,
 
     Raises:
         ValueError: if ``literals`` is ``None`` when a ``str`` is expected,
-                    or if ``gap_count`` is too large.
+                    or if ``gaps`` is too large.
     '''
 
     # header begins with 3 bits that indicate the number of gap bytes.
     # (if first three bits of header are all set, the remainder of
-    # gap_count is stored in the bytes after the header.)
+    # gaps is stored in the bytes after the header.)
     header_gap_bits: Final = 3
     header_gap_max: Final = all_bits(header_gap_bits)
-    header_gap_count: Final = min(gap_count, header_gap_max)
+    header_gap_count: Final = min(gaps, header_gap_max)
 
     max_gap_bits: Final = 2 * bits_per_byte - 1
 
     # initialize result with header byte
     result = binstr(header_gap_count, header_gap_bits)
-    result += str(int(is_dirty))
+    result += '1' if is_dirty else '0'
     result += binstr(special, 4)
 
-    if header_gap_max <= gap_count <= all_bits(bits_per_byte - 1):
+    if header_gap_max <= gaps <= all_bits(bits_per_byte - 1):
         logging.debug('One tail byte needed.')
-        result += binstr(gap_count, bits_per_byte)
-    elif all_bits(bits_per_byte - 1) < gap_count <= all_bits(max_gap_bits):
+        result += binstr(gaps, bits_per_byte)
+    elif all_bits(bits_per_byte - 1) < gaps <= all_bits(max_gap_bits):
         logging.debug('Two tail bytes needed.')
 
         # the first bit of first byte is a flag indicating there's another
-        # byte, and the rest of the byte is the upper bits of gap_count.
+        # byte, and the rest of the byte is the upper bits of gaps.
         # the second byte is the lower 8 bits.
-        upper: Final = gap_count >> bits_per_byte
-        gaps = '1{}{}'.format(binstr(upper, bits_per_byte - 1),
-                              binstr(gap_count, bits_per_byte))
-
-        result += gaps
-    elif all_bits(max_gap_bits) < gap_count:
-        raise ValueError('too many gaps: {}'.format(gap_count))
+        upper: Final = binstr(gaps >> bits_per_byte, bits_per_byte - 1)
+        lower: Final = binstr(gaps, bits_per_byte)
+        result += '1{}{}'.format(upper, lower)
+    elif gaps > all_bits(max_gap_bits):
+        raise ValueError('too many gaps: {}'.format(gaps))
 
     if not is_dirty:
         result += literals
-
-    logging.debug('Created chunk: {}'.format(result))
 
     return result
 
@@ -177,68 +175,44 @@ class BBC(CompressionBase):
         if not isinstance(bs, str):
             bs = str(bs)
 
+        logging.info('Compressing %d bits with BBC', len(bs))
+        logging.debug('Bits: %s', bs)
+
         result = ''
 
-        # compression data for logs
-        input_length: Final = len(bs)
-        atom_count = 0
-        gap_count = 0
-        off_count = 0
-        lit_count = 0
-
-        logging.info('Compressing {} bits with BBC'.format(input_length))
-        logging.debug('Bits: {}'.format(bs))
-
         while len(bs) > 0:
-            logging.debug('Remaining bits: {}'.format(bs))
+            bs, gaps = get_gaps(bs)
 
-            # determine the number of gaps and skip past them
-            gap_bytes = gap_length(bs)
+            if gaps > 0:
+                logging.info('Found gap of size %d', gaps)
 
-            if gap_bytes > 0:
-                logging.info('Found gap of size {}'.format(gap_bytes))
-                bs = bs[gap_bytes * bits_per_byte:]
-                gap_count += 1
-
-            # get the byte after the potential offset byte to determine
-            # whether or not it should be treated as a literal
+            # get the byte after next to determine whether or not an offset
+            # byte should be treated as a literal
             lookahead_byte: Final = bs[bits_per_byte:2 * bits_per_byte]
-            literal_offset: Final = len(lookahead_byte) > 0 \
-                and gap_length(lookahead_byte) == 0
+            offset_as_literal: Final = lookahead_byte.count('1') > 0
 
             # determine the type of byte following the gaps
             dirty_bit = dirty_bit_pos(bs)
-            is_dirty = (dirty_bit != -1) and not literal_offset
-            literals = ''
+            is_dirty = (dirty_bit != -1) and not offset_as_literal
 
             if is_dirty:
-                logging.debug('Offset byte: set bit @ {}'.format(dirty_bit))
-                off_count += 1
-
-                # skip past the offset byte
-                bs = bs[bits_per_byte:]
+                # skip past the offset byte without encoding literals,
+                # storing the dirty bit position in ``special``
+                bs, literals = bs[bits_per_byte:], ''
                 special = dirty_bit
+                logging.info('Offset byte found: bit @ %d', dirty_bit)
             else:
-                # literals encountered; encode as many as possible then skip
-                # past them
+                # literals encountered; encode and skip, storing the number
+                # of literals in ``special``
                 bs, literals = get_literals(bs)
                 special = len(literals) // bits_per_byte
+                logging.info('Literals found: {}'.format(special))
 
-                logging.debug('Gap followed by literals: {}'.format(literals))
-                lit_count += special
+            atom = create_atom(gaps, is_dirty, special, literals)
+            logging.info('Created atom of length %d', len(atom))
+            logging.debug('Atom: %s', atom)
 
-            # encode the gaps and trailing byte(s) in an atom
-            result += create_atom(gap_bytes, is_dirty, special, literals)
-            atom_count += 1
+            result += atom
 
-        # log the compression metadata
-        logging.info('Compressed bit count: {}'.format(len(result)))
-        logging.info('Atom count: {}'.format(atom_count))
-        logging.info('Gap count: {}'.format(gap_count))
-        logging.info('Offset count: {}'.format(off_count))
-        logging.info('Literal count: {}'.format(lit_count))
-
-        ratio: Final = input_length / len(result) if len(result) > 0 else 'inf'
-        logging.info('Compression ratio: {:.02f}'.format(ratio))
-
+        logging.info('Compressed bit count: %d', len(result))
         return result

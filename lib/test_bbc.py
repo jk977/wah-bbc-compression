@@ -23,22 +23,23 @@ lit_max: Final = 0b1111             # max number of literals in atom
 ##############
 
 class TestBBC(ut.TestCase):
-    def test_gap_length(self):
+    def test_get_gaps(self):
         '''
-        Test ``bbc.gap_length()`` with gaps that fit into one atom.
+        Test ``bbc.get_gaps()`` with gaps that fit into one atom.
         '''
 
         for i in range(gap_max + 1):
-            self.assertEqual(bbc.gap_length('00000000' * i), i)
+            self.assertEqual(bbc.get_gaps('00000000' * i), ('', i))
 
     def test_gap_length_overflow(self):
         '''
-        Test ``bbc.gap_length()`` with gaps that do not fit into one atom.
+        Test ``bbc.get_gaps()`` with gaps that do not fit into one atom.
         '''
 
         for i in range(1, 11):
             n = gap_max + i
-            self.assertEqual(bbc.gap_length('00000000' * n), gap_max)
+            self.assertEqual(bbc.get_gaps('00000000' * n),
+                             ('00000000' * i, gap_max))
 
     def test_get_literals_none(self):
         '''

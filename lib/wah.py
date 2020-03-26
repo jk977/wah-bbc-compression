@@ -84,10 +84,12 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
         with zeroes on the right.
     '''
 
-    # set the first bit to 0, then add the literal, padding right with zeroes
     section_size: Final = word_size - 1
-    word = '0{{:<0{}s}}'.format(section_size).format(bs[:section_size])
+    literal: Final = bs[:section_size]
 
+    # format string is ugly, but all this does is create a string beginning
+    # with 0, followed by the literal padded to become exactly one word long
+    word = '0{{:<0{}s}}'.format(section_size).format(literal)
     return bs[section_size:], word
 
 
@@ -104,37 +106,26 @@ class WAH(CompressionBase):
         if not isinstance(bs, str):
             bs = str(bs)
 
-        logging.info('Compressing {} bits with WAH '
-                     '(word size: {})'.format(len(bs), word_size))
-        logging.debug('Bits: {}'.format(bs))
+        logging.info('WAH - compressing %d bits', len(bs))
+        logging.info('Word size: %d', word_size)
+        logging.debug('Bits: %s', bs)
 
         section_size: Final = word_size - 1
         result = ''
 
-        input_length: Final = len(bs)
-        run_count = 0
-        lit_count = 0
-
         while len(bs) > 0:
-            current_run_count = run_length(bs, word_size)
+            run_count = run_length(bs, word_size)
 
-            if current_run_count == 0:
+            if run_count == 0:
                 bs, next_word = encode_literal(bs, word_size)
-                lit_count += 1
+                logging.info('Found literal')
+                logging.debug('Literal: %s', next_word)
             else:
                 bs, next_word = encode_run(bs, word_size)
-                logging.info('Found run of size {}'.format(current_run_count))
-                run_count += 1
+                logging.info('Found run of size %d', run_count)
 
-            logging.debug('Next compressed word: {}'.format(next_word))
-            logging.debug('Remaining bits: {}'.format(bs))
+            logging.debug('Next compressed word: %s', next_word)
             result += next_word
 
-        logging.info('Run count: {}'.format(run_count))
-        logging.info('Literal count: {}'.format(lit_count))
-        logging.info('Compressed bit count: {}'.format(len(result)))
-
-        ratio = input_length / len(result) if len(result) > 0 else 'inf'
-        logging.info('Compression ratio: {}'.format(ratio))
-
+        logging.info('Compressed bit count: %d', len(result))
         return result
