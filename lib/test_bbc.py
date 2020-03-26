@@ -131,8 +131,8 @@ class TestBBC(ut.TestCase):
 
             # gap with offset byte, then literals
             bits = '00000000' * gaps + '00000001' + '11100000' + '00000111'
-            expected = gap_prefix + '10111' \
-                + '00000010' + '11100000' + '00000111'
+            expected = gap_prefix + '00011' \
+                + '00000001' + '11100000' + '00000111'
             self.assertEqual(BBC.compress(bits), expected)
 
             # gap with literals, then offset byte
@@ -161,8 +161,8 @@ class TestBBC(ut.TestCase):
 
             # gap with offset byte, then literals
             bits = '00000000' * gaps + '10000000' + '10010010' + '01001001'
-            expected = '11110000' + gap_bin \
-                + '00000010' + '10010010' + '01001001'
+            expected = '11100011' + gap_bin \
+                + '10000000' + '10010010' + '01001001'
             self.assertEqual(BBC.compress(bits), expected)
 
             # gap with literals, then offset byte

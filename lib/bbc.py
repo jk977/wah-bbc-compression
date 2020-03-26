@@ -191,16 +191,22 @@ class BBC(CompressionBase):
 
             # determine the number of gaps and skip past them
             gap_bytes = gap_length(bs)
-            bs = bs[gap_bytes * bits_per_byte:]
 
             if gap_bytes > 0:
                 logging.info('Found gap of size {}'.format(gap_bytes))
+                bs = bs[gap_bytes * bits_per_byte:]
                 gap_count += 1
+
+            # get the byte after the potential offset byte to determine
+            # whether or not it should be treated as a literal
+            lookahead_byte: Final = bs[bits_per_byte:2 * bits_per_byte]
+            literal_offset: Final = len(lookahead_byte) > 0 \
+                and gap_length(lookahead_byte) == 0
 
             # determine the type of byte following the gaps
             dirty_bit = dirty_bit_pos(bs)
-            is_dirty = (dirty_bit != -1)
-            literals = None
+            is_dirty = (dirty_bit != -1) and not literal_offset
+            literals = ''
 
             if is_dirty:
                 logging.debug('Offset byte: set bit @ {}'.format(dirty_bit))
