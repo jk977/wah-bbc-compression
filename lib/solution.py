@@ -10,11 +10,10 @@ import os
 from functools import reduce
 from typing import Final, Optional, Type
 
-from lib.bitstring import BitString
 from lib.compression import CompressionBase
-
 from lib.bbc import BBC
 from lib.wah import WAH
+from lib.util import binstr
 
 
 def _compression_filename(in_path: str, method: str,
@@ -35,7 +34,7 @@ def _compression_filename(in_path: str, method: str,
     return in_path + '_{}'.format(method) + suffix
 
 
-def _index_row(row: str) -> BitString:
+def _index_row(row: str) -> str:
     '''
     Turn a comma-separated data file row into its compressed
     form as specified by the assignment.
@@ -46,7 +45,7 @@ def _index_row(row: str) -> BitString:
              1 and 100 (inclusive); and adopted is 'True' or 'False'.
 
     Returns:
-        a BitString containing the binary representation of the columns given
+        a string containing the binary representation of the columns given
         by ``row``.
     '''
 
@@ -64,16 +63,16 @@ def _index_row(row: str) -> BitString:
     # set of 4 bits representing the animal type, in the same left-to-right
     # order as the animals array.
     animal_cols: Final = 0b1000 >> animals.index(animal)
-    animal_bits: Final = BitString(animal_cols, animal_width)
+    animal_bits: Final = binstr(animal_cols, animal_width)
 
     # set of 10 bits representing the animal age, in buckets of 10 years
     # (0b1000000000 -> 1-10 years, 0b0100000000 -> 11-20, etc.)
     age_cols: Final = 0b1000000000 >> (int(age) - 1) // 10
-    age_bits: Final = BitString(age_cols, age_width)
+    age_bits: Final = binstr(age_cols, age_width)
 
     # set of 2 bits representing whether or not the animal was adopted
     adopted_cols: Final = 0b10 if adopted == 'True' else 0b01
-    adopted_bits: Final = BitString(adopted_cols, adopted_width)
+    adopted_bits: Final = binstr(adopted_cols, adopted_width)
 
     return animal_bits + age_bits + adopted_bits
 

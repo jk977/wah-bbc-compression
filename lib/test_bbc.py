@@ -37,6 +37,8 @@ class TestBBC(ut.TestCase):
             bits = '0' * i
             self.assertEqual(bbc.get_literals(bits), (bits, ''))
 
+        lit_max: Final = 0b1111
+        lit_max_bits: Final = lit_max * 8
         literals: Final = ['00000011', '10000001', '10001001',
                            '10011001', '11111111', '11111111']
 
@@ -45,7 +47,7 @@ class TestBBC(ut.TestCase):
             self.assertEqual(bbc.get_literals(literal), ('', literal))
 
             # test multi-byte literals under the literal limit
-            for i in range(1, 16):
+            for i in range(1, lit_max + 1):
                 offsets = '00100000' * (i - 1)
                 self.assertEqual(bbc.get_literals(offsets), ('', offsets))
                 self.assertEqual(bbc.get_literals(literal + offsets),
@@ -57,24 +59,15 @@ class TestBBC(ut.TestCase):
                                  ('', literal * i))
 
             # test multi-byte literals over the literal limit
-            for i in range(16, 100):
+            for i in range(lit_max + 1, 100):
                 offsets = '00100000' * i
+                tests = [offsets, literal + offsets, offsets + literal,
+                         literal * i, offsets * i]
 
-                tail, lits = bbc.get_literals(offsets)
-                self.assertEqual(lits, offsets)
-                self.assertEqual(tail, '')
-
-                tail, lits = bbc.get_literals(literal + offsets)
-                self.assertEqual(lits, literal + offsets)
-                self.assertEqual(tail, '')
-
-                tail, lits = bbc.get_literals(offsets + literal)
-                self.assertEqual(lits, offsets + literal)
-                self.assertEqual(tail, '')
-
-                tail, lits = bbc.get_literals(literal * i)
-                self.assertEqual(lits, literal * i)
-                self.assertEqual(tail, '')
+                for bits in tests:
+                    tail, lits = bbc.get_literals(bits)
+                    self.assertEqual(lits, bits[:lit_max_bits])
+                    self.assertEqual(tail, bits[lit_max_bits:])
 
     def test_dirty_bit_pos(self):
         # test all possible bytes

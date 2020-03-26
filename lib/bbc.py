@@ -69,6 +69,7 @@ def get_literals(bs: str) -> Tuple[str, str]:
         beginning of ``bs``.
     '''
 
+    literal_max: Final = 0b1111
     literals = ''
     count = 0
 
@@ -78,6 +79,9 @@ def get_literals(bs: str) -> Tuple[str, str]:
 
         literals += byte
         count += 1
+
+        if count == literal_max:
+            break
 
     return bs[count * bits_per_byte:], literals
 
