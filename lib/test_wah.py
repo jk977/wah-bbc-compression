@@ -106,7 +106,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_literals(self):
         '''
-        Test ``WAH.compress()`` on strings of literal bytes
+        Test ``WAH.compress()`` on strings of literal bytes.
         '''
 
         for ws in range(3, 65):
@@ -131,7 +131,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_runs(self):
         '''
-        Test ``WAH.compress()`` on runs of bits
+        Test ``WAH.compress()`` on runs of bits.
         '''
 
         for word_size in range(8, 65):
@@ -151,7 +151,7 @@ class TestWAH(ut.TestCase):
 
     def test_compress_long(self):
         '''
-        Test ``WAH.compress()`` on more complex examples
+        Test ``WAH.compress()`` on more complex examples.
         '''
 
         # WAH example from class slides.

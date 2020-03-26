@@ -7,11 +7,13 @@ from typing import Any, Optional
 
 def all_bits(bit_count: int) -> int:
     '''
+    Get an integer with the specified number of set bits.
+
     Args:
-        bit_count: the number of bits to set in the return value.
+        bit_count: the number of bits to set.
 
     Returns:
-        a bit field with the lowest ``bit_count`` bits set, and the rest unset.
+        an ``int`` with only the lowest ``bit_count`` bits set.
     '''
 
     return 2**bit_count - 1
@@ -19,7 +21,7 @@ def all_bits(bit_count: int) -> int:
 
 def binstr(n: int, length: Optional[int] = None) -> str:
     '''
-    Convert ``n`` to a binary string, much like ``bin()`` but without the
+    Convert ``n`` to a binary string. Similar to ``bin()`` but without the
     prefix ``0b`` and with the ability to specify the string length.
 
     Args:
