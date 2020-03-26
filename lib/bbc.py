@@ -89,7 +89,7 @@ def get_literals(bs: str) -> Tuple[str, str]:
 def create_atom(gap_count: int,
                 is_dirty: bool,
                 special: int,
-                literal: str = '') \
+                literals: str = '') \
         -> str:
     '''
     Creates the next compressed atom, consisting of a header byte
@@ -98,20 +98,20 @@ def create_atom(gap_count: int,
     Args:
         gap_count: the number of gaps to encode in the atom.
         is_dirty: whether or not the lower bits of the header byte in the
-                  atom represents a dirty bit position.
-        special: if is_dirty is ``True``, represents the position of the dirty
-                  bit in the last byte encoded by the atom, zero-indexed
-                  from the right. Otherwise, ``special`` is a 4-bit value
-                  representing the amount of trailing literals given by
-                  ``literal``.
-        literal: the trailing literals to add to the end of the atom.
+                  atom represent a dirty bit position.
+        special: if ``is_dirty`` is ``True``, represents the position of the
+                 dirty bit in the last byte encoded by the atom, zero-indexed
+                 from the right. Otherwise, ``special`` is a 4-bit value
+                 representing the amount of trailing literals given by
+                 ``literals``.
+        literals: the trailing literals to add to the end of the atom.
 
     Returns:
         an atom encoding a sequence of bits with the information given by
         the parameters.
 
     Raises:
-        ValueError: if ``literal`` is ``None`` when a ``str`` is expected,
+        ValueError: if ``literals`` is ``None`` when a ``str`` is expected,
                     or if ``gap_count`` is too large.
     '''
 
@@ -147,7 +147,7 @@ def create_atom(gap_count: int,
         raise ValueError('too many gaps: {}'.format(gap_count))
 
     if not is_dirty:
-        result += literal
+        result += literals
 
     logging.debug('Created chunk: {}'.format(result))
 
