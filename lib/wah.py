@@ -13,7 +13,7 @@ from lib.util import binstr
 def run_length(bs: str, word_size: int) -> int:
     '''
     Args:
-        bs: the str to analyze.
+        bs: the string to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -47,7 +47,7 @@ def encode_run(bs: str, word_size: int) -> Tuple[str, str]:
     ``(word_size - 1) * (2**(word_size - 2) - 1)``.
 
     Args:
-        bs: the str to analyze.
+        bs: the string to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -73,7 +73,7 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
     with zeroes as needed.
 
     Args:
-        bs: the str to analyze.
+        bs: the string to analyze.
         word_size: the WAH word size.
 
     Returns:

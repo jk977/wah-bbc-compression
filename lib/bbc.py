@@ -1,6 +1,8 @@
 '''
 Contains an implementation of the byte-aligned bitmap compression (BBC)
-algorithm, in addition to BBC-related functions.
+algorithm, in addition to BBC-related utility functions. The algorithm
+has been modified from the original; see the ``BBC`` class documentation
+for the differences.
 '''
 
 import logging
@@ -22,7 +24,7 @@ max_gap_bits: Final = 2 * bits_per_byte - 1        # max bits used for gap size
 def gap_length(bs: str) -> int:
     '''
     Args:
-        bs: the str to check for gaps.
+        bs: the string to check for gaps.
 
     Returns:
         the number of gap bytes at the beginning of ``bs``. If the number
@@ -46,7 +48,7 @@ def dirty_bit_pos(bs: str) -> int:
     (i.e., is an offset, or dirty, byte).
 
     Args:
-        bs: the str to check for a dirty byte.
+        bs: the string to check for a dirty byte.
 
     Returns:
         the position of the dirty bit in the next byte, or -1 if the byte
@@ -161,12 +163,13 @@ class BBC(CompressionBase):
 
     1. Gap length is encoded in three bits rather than five.
     2. The last field of the header byte uses four bits rather than three.
-    3. Instead of using a split for indicating if there are literals or an
-       offset byte, the fourth bit in the header byte is a flag for whether or
-       not there is an offset byte.
-    4. For encoding gap length across two bytes, the first byte contains the
-       most significant bits rather than the least significant bits.
-    5. Offset bytes are allowed as literals.
+    3. Instead of using a split to indicate an offset byte in the header byte,
+       the fourth bit of the header is a flag that indicates the presence of an
+       offset byte.
+    4. For encoding the gap length across two bytes, the first byte contains
+       the most significant bits rather than the least significant bits.
+    5. Offset bytes are allowed as literals, and can be literally encoded in
+       the beginning, middle, or end of a sequence of literals.
     '''
 
     @staticmethod
