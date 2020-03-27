@@ -78,11 +78,11 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
         word_size: the WAH word size.
 
     Returns:
-        A tuple ``(tail, literal)``, where ``literal`` is the next literal
-        from ``bs`` of length ``(word_size - 1)``, and ``tail`` is the
-        remainder of ``bs`` with the literal removed. If there are less than
-        ``(word_size - 1)`` bits remaining in ``bs``, ``literal`` is padded
-        with zeroes on the right.
+        A tuple ``(tail, encoded_literal)``, where ``encoded_literal`` is a
+        word encoding the next ``(word_size - 1)``-bit literal from ``bs``,
+        and ``tail`` is the remainder of ``bs`` with the literal removed.
+        If there are less than ``(word_size - 1)`` bits remaining in ``bs``,
+        ``literal`` is padded with zeroes on the right.
     '''
 
     section_size: Final = word_size - 1
@@ -90,8 +90,8 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
 
     # format string is ugly, but all this does is create a string beginning
     # with 0, followed by the literal padded to become exactly one word long
-    word = f'0{{:<0{section_size}s}}'.format(literal)
-    return bs[section_size:], word
+    encoded_literal: Final = f'0{{:<0{section_size}s}}'.format(literal)
+    return bs[section_size:], encoded_literal
 
 
 class WAH(CompressionBase):
