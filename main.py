@@ -1,6 +1,6 @@
 '''
-Command-line interface for compression algorithms. Run ``python main.py -h``
-for program usage.
+Command-line interface for compression algorithms. Run
+``python main.py --help`` for program usage.
 '''
 
 import logging
@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 from lib.solution import create_index, compress_index
 
 
-def get_basename(path: str) -> str:
+def _get_basename(path: str) -> str:
     '''
     Args:
         path: The path to process.
@@ -23,7 +23,7 @@ def get_basename(path: str) -> str:
     return os.path.split(path)[1]
 
 
-def process_args():
+def _process_args():
     '''
     Process the command line arguments using the ``argparse`` library.
 
@@ -64,7 +64,7 @@ def main():
     Run the command-line interface for the compression algorithms.
     '''
 
-    args = process_args()
+    args = _process_args()
 
     logging.basicConfig(level=args.log_level,
                         filename=args.log_file,
@@ -81,9 +81,11 @@ def main():
     logging.debug('Word size: {}'.format(word_size))
     logging.debug('Sort data: {}'.format(sort_data))
 
-    idx_file = create_index(data_file,
-                            os.path.join(output_path, get_basename(data_file)),
-                            sort_data)
+    # due to the assignment specification, ``create_index()`` may use a
+    # different output filename than the one it's given. because of this,
+    # ``create_index()`` returns the file it writes to.
+    suggested_idx = os.path.join(output_path, _get_basename(data_file))
+    idx_file = create_index(data_file, suggested_idx, sort_data)
     logging.info('Index file written to {}'.format(idx_file))
 
     cmp_file = compress_index(idx_file, output_path, method, word_size)
