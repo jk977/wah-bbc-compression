@@ -15,7 +15,7 @@ from lib.util import all_bits, binstr
 
 bits_per_byte: Final = 8
 gap_max: Final = all_bits(15)       # max number of gaps in atom
-lit_max: Final = 0b1111             # max number of literals in atom
+lit_max: Final = all_bits(4)        # max number of literals in atom
 
 
 ##############

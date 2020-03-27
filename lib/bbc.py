@@ -57,12 +57,12 @@ def dirty_bit_pos(bs: str) -> int:
         is not a dirty byte.
     '''
 
-    bstr = bs[:bits_per_byte]
+    byte = bs[:bits_per_byte]
 
-    if bstr.count('1') != 1:
+    if byte.count('1') != 1:
         return -1
     else:
-        return bstr.find('1')
+        return byte.find('1')
 
 
 def get_literals(bs: str) -> Tuple[str, str]:

@@ -5,7 +5,6 @@ modules in the package to produce the required functions.
 
 import logging
 import operator as op
-import os
 
 from functools import reduce
 from typing import Final, Optional, Type
