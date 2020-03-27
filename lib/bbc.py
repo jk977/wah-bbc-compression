@@ -144,9 +144,9 @@ def create_atom(gaps: int,
         # the second byte is the lower 8 bits.
         upper: Final = binstr(gaps >> bits_per_byte, bits_per_byte - 1)
         lower: Final = binstr(gaps, bits_per_byte)
-        result += '1{}{}'.format(upper, lower)
+        result += f'1{upper}{lower}'
     elif gaps > all_bits(max_gap_bits):
-        raise ValueError('too many gaps: {}'.format(gaps))
+        raise ValueError(f'too many gaps: {gaps}')
 
     if not is_dirty:
         result += literals
@@ -206,7 +206,7 @@ class BBC(CompressionBase):
                 # of literals in ``special``
                 bs, literals = get_literals(bs)
                 special = len(literals) // bits_per_byte
-                logging.info('Literals found: {}'.format(special))
+                logging.info('Literals found: %d', special)
 
             atom = create_atom(gaps, is_dirty, special, literals)
             logging.info('Created atom of length %d', len(atom))

@@ -37,8 +37,9 @@ def binstr(n: int, length: Optional[int] = None) -> str:
     if length is None:
         fmt = '{:b}'
     else:
+        # zero out unused bits and use format string that zero-pads as needed
         n &= all_bits(length)
-        fmt = '{{:0{}b}}'.format(length)
+        fmt = f'{{:0{length}b}}'
 
     return fmt.format(n)
 

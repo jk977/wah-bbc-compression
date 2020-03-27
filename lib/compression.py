@@ -65,7 +65,7 @@ class CompressionBase(ABC):
 
         with open(out_file, 'w') as ofile:
             for i in range(col_count):
-                logging.debug('Compressing column {}'.format(i))
+                logging.debug('Compressing column %d', i)
                 column = content[i::col_count]
                 compressed = cls.compress(column, word_size)
                 ofile.write(compressed)

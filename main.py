@@ -76,20 +76,20 @@ def main():
     method = args.method
     word_size = args.word_size
 
-    logging.debug('Data file: {}'.format(data_file))
-    logging.debug('Compression method: {}'.format(method))
-    logging.debug('Word size: {}'.format(word_size))
-    logging.debug('Sort data: {}'.format(sort_data))
+    logging.debug('Data file: %s', data_file)
+    logging.debug('Compression method: %s', method)
+    logging.debug('Word size: %d', word_size)
+    logging.debug('Sort data: %s', sort_data)
 
     # due to the assignment specification, ``create_index()`` may use a
     # different output filename than the one it's given. because of this,
     # ``create_index()`` returns the file it writes to.
     suggested_idx = os.path.join(output_path, _get_basename(data_file))
     idx_file = create_index(data_file, suggested_idx, sort_data)
-    logging.info('Index file written to {}'.format(idx_file))
+    logging.info('Index file written to %s', idx_file)
 
     cmp_file = compress_index(idx_file, output_path, method, word_size)
-    logging.info('Compressed file written to {}'.format(cmp_file))
+    logging.info('Compressed file written to %s', cmp_file)
 
 
 if __name__ == '__main__':

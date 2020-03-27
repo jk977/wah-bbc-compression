@@ -136,7 +136,7 @@ class TestWAH(ut.TestCase):
 
         for word_size in range(8, 65):
             sect_size = word_size - 1
-            result_fmt = '{{:0{}b}}'.format(sect_size - 1)
+            result_fmt = f'{{:0{sect_size - 1}b}}'
 
             for length in range(1, 40):
                 # test the compression of a run of both zeroes and ones

@@ -4,9 +4,7 @@ modules in the package to produce the required functions.
 '''
 
 import logging
-import operator as op
 
-from functools import reduce
 from typing import Final, Optional, Type
 
 from lib.compression import CompressionBase
@@ -29,8 +27,8 @@ def _compression_filename(in_path: str, method: str,
         using the conventions detailed in the assignment description.
     '''
 
-    suffix: Final = '_{}'.format(word_size) if word_size is not None else ''
-    return in_path + '_{}'.format(method) + suffix
+    suffix: Final = f'_{word_size}' if word_size is not None else ''
+    return in_path + f'_{method}' + suffix
 
 
 def _index_row(row: str) -> str:
@@ -48,7 +46,7 @@ def _index_row(row: str) -> str:
         by ``row``.
     '''
 
-    logging.debug('Indexing row: {}'.format(row))
+    logging.debug('Indexing row: %d', row)
     [animal, age, adopted] = row.split(',')
 
     # animals allowed in the animal column
@@ -93,7 +91,7 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         otherwise.
     '''
 
-    logging.debug('Indexing {} to {}'.format(in_file, out_file))
+    logging.debug('Indexing %s to %s', in_file, out_file)
 
     with open(in_file, 'r') as ifile:
         contents = ifile.read().splitlines()
@@ -102,7 +100,7 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         out_file += '_sorted'
         contents = sorted(contents)
 
-    index = reduce(op.iadd, map(_index_row, contents))
+    index = ''.join(map(_index_row, contents))
 
     with open(out_file, 'w') as ofile:
         ofile.write(str(index))
@@ -135,7 +133,7 @@ def compress_index(in_file: str, out_dir: str, method: str,
     compressor: Type[CompressionBase]
     out_file: Final = _compression_filename(in_file, method, word_size)
 
-    logging.debug('Compressing index {} to {}'.format(in_file, out_file))
+    logging.debug('Compressing index %s to %s', in_file, out_file)
 
     if method == 'WAH':
         if word_size is None:
@@ -145,7 +143,7 @@ def compress_index(in_file: str, out_dir: str, method: str,
     elif method == 'BBC':
         compressor = BBC
     else:
-        raise NotImplementedError('compress_index(method = {})'.format(method))
+        raise NotImplementedError(f'compress_index(method = {method})')
 
     columns: Final = 16
     compressor.write(in_file, out_file, columns, word_size)

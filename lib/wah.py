@@ -61,8 +61,9 @@ def encode_run(bs: str, word_size: int) -> Tuple[str, str]:
     # store length in the least significant bits of resulting
     # word, set the first bit to 1 to signify a run, and set
     # the second bit to the type of run.
-    result = '1{}{}'.format(bs[0], binstr(runs, section_size - 1))
-    logging.debug('Encoded {}-run of {} words'.format(bs[0], runs))
+    encoded_runs: Final = binstr(runs, section_size - 1)
+    result: Final = f'1{bs[0]}{encoded_runs}'
+    logging.debug('Encoded %s-run of %d words', bs[0], runs)
 
     return bs[section_size * runs:], result
 
@@ -89,7 +90,7 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
 
     # format string is ugly, but all this does is create a string beginning
     # with 0, followed by the literal padded to become exactly one word long
-    word = '0{{:<0{}s}}'.format(section_size).format(literal)
+    word = f'0{{:<0{section_size}s}}'.format(literal)
     return bs[section_size:], word
 
 
