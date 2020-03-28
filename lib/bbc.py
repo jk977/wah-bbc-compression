@@ -57,7 +57,7 @@ def dirty_bit_pos(bs: str) -> int:
         is not a dirty byte.
     '''
 
-    byte = bs[:bits_per_byte]
+    byte: Final = bs[:bits_per_byte]
 
     if byte.count('1') != 1:
         return -1
@@ -90,10 +90,7 @@ def get_literals(bs: str) -> Tuple[str, str]:
     return bs[count * bits_per_byte:], literals
 
 
-def create_atom(gaps: int,
-                is_dirty: bool,
-                special: int,
-                literals: str = '') \
+def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
         -> str:
     '''
     Creates the next compressed atom, consisting of a header byte
@@ -128,15 +125,19 @@ def create_atom(gaps: int,
 
     max_gap_bits: Final = 2 * bits_per_byte - 1
 
-    # initialize result with header byte
-    result = binstr(header_gap_count, header_gap_bits)
-    result += '1' if is_dirty else '0'
-    result += binstr(special, 4)
+    # binary strings used in header byte
+    header_gap_bin: Final = binstr(header_gap_count, header_gap_bits)
+    special_bin: Final = binstr(special, 4)
+
+    # construct the header byte
+    result = f'{header_gap_bin}{1 if is_dirty else 0}{special_bin}'
 
     if header_gap_max <= gaps <= all_bits(bits_per_byte - 1):
+        # gap length can be encoded in one byte after header
         logging.debug('One tail byte needed.')
         result += binstr(gaps, bits_per_byte)
     elif all_bits(bits_per_byte - 1) < gaps <= all_bits(max_gap_bits):
+        # gap length can be encoded in two bytes after header
         logging.debug('Two tail bytes needed.')
 
         # the first bit of first byte is a flag indicating there's another
@@ -146,7 +147,7 @@ def create_atom(gaps: int,
         lower: Final = binstr(gaps, bits_per_byte)
         result += f'1{upper}{lower}'
     elif gaps > all_bits(max_gap_bits):
-        raise ValueError(f'too many gaps: {gaps}')
+        raise ValueError(f'gaps too large ({gaps} > {all_bits(max_gap_bits)})')
 
     if not is_dirty:
         result += literals
@@ -172,9 +173,6 @@ class BBC(CompressionBase):
 
     @staticmethod
     def compress(bs, word_size=None):
-        if not isinstance(bs, str):
-            bs = str(bs)
-
         logging.info('Compressing %d bits with BBC', len(bs))
         logging.debug('Bits: %s', bs)
 
@@ -192,8 +190,8 @@ class BBC(CompressionBase):
             offset_as_literal: Final = lookahead_byte.count('1') > 0
 
             # determine the type of byte following the gaps
-            dirty_bit = dirty_bit_pos(bs)
-            is_dirty = (dirty_bit != -1) and not offset_as_literal
+            dirty_bit: Final = dirty_bit_pos(bs)
+            is_dirty: Final = (dirty_bit != -1) and not offset_as_literal
 
             if is_dirty:
                 # skip past the offset byte without encoding literals,
@@ -208,7 +206,7 @@ class BBC(CompressionBase):
                 special = len(literals) // bits_per_byte
                 logging.info('Literals found: %d', special)
 
-            atom = create_atom(gaps, is_dirty, special, literals)
+            atom: Final = create_atom(gaps, is_dirty, special, literals)
             logging.info('Created atom of length %d', len(atom))
             logging.debug('Atom: %s', atom)
 

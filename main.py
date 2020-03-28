@@ -7,6 +7,7 @@ import logging
 import os
 
 from argparse import ArgumentParser
+from typing import Final
 
 from lib.solution import create_index, compress_index
 
@@ -70,11 +71,11 @@ def main():
                         filename=args.log_file,
                         filemode='w')
 
-    data_file = args.data_file
-    output_path = args.output_path
-    sort_data = args.sort_data
-    method = args.method
-    word_size = args.word_size
+    data_file: Final = args.data_file
+    output_path: Final = args.output_path
+    sort_data: Final = args.sort_data
+    method: Final = args.method
+    word_size: Final = args.word_size
 
     logging.debug('Data file: %s', data_file)
     logging.debug('Compression method: %s', method)
@@ -84,11 +85,11 @@ def main():
     # due to the assignment specification, ``create_index()`` may use a
     # different output filename than the one it's given. because of this,
     # ``create_index()`` returns the file it writes to.
-    suggested_idx = os.path.join(output_path, _get_basename(data_file))
-    idx_file = create_index(data_file, suggested_idx, sort_data)
+    suggested_idx: Final = os.path.join(output_path, _get_basename(data_file))
+    idx_file: Final = create_index(data_file, suggested_idx, sort_data)
     logging.info('Index file written to %s', idx_file)
 
-    cmp_file = compress_index(idx_file, output_path, method, word_size)
+    cmp_file: Final = compress_index(idx_file, output_path, method, word_size)
     logging.info('Compressed file written to %s', cmp_file)
 
 

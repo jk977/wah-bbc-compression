@@ -104,9 +104,6 @@ class WAH(CompressionBase):
 
     @staticmethod
     def compress(bs, word_size=8):
-        if not isinstance(bs, str):
-            bs = str(bs)
-
         logging.info('WAH - compressing %d bits', len(bs))
         logging.info('Word size: %d', word_size)
         logging.debug('Bits: %s', bs)

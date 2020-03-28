@@ -5,7 +5,7 @@ Contains the base class for compression algorithms.
 import logging
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Final, Optional
 
 
 class CompressionBase(ABC):
@@ -21,14 +21,13 @@ class CompressionBase(ABC):
 
     @staticmethod
     @abstractmethod
-    def compress(bs, word_size: Optional[int]) -> str:
+    def compress(bs: str, word_size: Optional[int]) -> str:
         '''
         Compress the given bitmap index with the specified word size,
         if applicable.
 
         Args:
-            bs: a string of zeroes and ones, or an object that can construct
-                a string.
+            bs: a string of zeroes and ones.
             word_size: the word size used in the algorithm.
 
         Returns:
@@ -43,10 +42,7 @@ class CompressionBase(ABC):
         pass
 
     @classmethod
-    def write(cls,
-              in_file: str,
-              out_file: str,
-              col_count: int,
+    def write(cls, in_file: str, out_file: str, col_count: int,
               word_size: Optional[int] = 8):
         '''
         Read the index from ``in_file`` with ``col_count`` columns and a word
@@ -61,12 +57,11 @@ class CompressionBase(ABC):
         '''
 
         with open(in_file, 'r') as ifile:
-            content = ifile.read()
+            content: Final = ifile.read()
 
         with open(out_file, 'w') as ofile:
             for i in range(col_count):
                 logging.debug('Compressing column %d', i)
                 column = content[i::col_count]
                 compressed = cls.compress(column, word_size)
-                ofile.write(compressed)
-                ofile.write('\n')
+                ofile.write(compressed + '\n')

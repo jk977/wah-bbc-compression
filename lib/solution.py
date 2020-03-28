@@ -100,10 +100,10 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         out_file += '_sorted'
         contents = sorted(contents)
 
-    index = ''.join(map(_index_row, contents))
+    index: Final = ''.join(map(_index_row, contents))
 
     with open(out_file, 'w') as ofile:
-        ofile.write(str(index))
+        ofile.write(index)
 
     return out_file
 
