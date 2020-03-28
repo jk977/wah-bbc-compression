@@ -52,16 +52,18 @@ class CompressionBase(ABC):
         Args:
             in_file: the index to compress.
             out_file: the path to write the compressed index to.
-            col_count: the number of columns in the in_file index.
+            col_count: the number of columns in the ``in_file`` index.
             word_size: the word size used in the algorithm.
         '''
 
         with open(in_file, 'r') as ifile:
-            content: Final = ifile.read()
+            content: Final = ifile.read().replace('\n', '')
 
         with open(out_file, 'w') as ofile:
             for i in range(col_count):
-                logging.debug('Compressing column %d', i)
                 column = content[i::col_count]
-                compressed = cls.compress(column, word_size)
-                ofile.write(compressed + '\n')
+                logging.debug('Compressing column %d', i)
+                logging.debug('Column:\n%s', column)
+
+                ofile.write(cls.compress(column, word_size))
+                ofile.write('\n')

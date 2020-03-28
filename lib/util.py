@@ -2,6 +2,7 @@
 Utility functions used across multiple modules.
 '''
 
+import os
 from typing import Any, Optional
 
 
@@ -59,3 +60,15 @@ def chunks_of(n: int, ls: Any):
     while len(ls) > 0:
         yield ls[:n]
         ls = ls[n:]
+
+
+def path_base(path: str) -> str:
+    '''
+    Args:
+        path: The path to process.
+
+    Returns:
+        ``path`` stripped of any parent directories.
+    '''
+
+    return os.path.split(path)[1]

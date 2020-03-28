@@ -4,21 +4,25 @@ modules in the package to produce the required functions.
 '''
 
 import logging
+import os
 
 from typing import Final, Optional, Type
 
 from lib.compression import CompressionBase
 from lib.bbc import BBC
 from lib.wah import WAH
-from lib.util import binstr
+from lib.util import binstr, path_base
 
 
-def _compression_filename(in_path: str, method: str,
+def _compression_file(in_file: str, out_dir: str, method: str,
                           word_size: Optional[int] = None) \
                             -> str:
     '''
+    Get the formatted name of the file to compress ``in_file`` into.
+
     Args:
-        in_path: a path to the compression input file.
+        in_file: a path to the compression input file.
+        out_dir: a path to the output directory
         method: one of 'WAH' or 'BBC'.
         word_size: the word size used in the compression algorithm.
 
@@ -27,8 +31,9 @@ def _compression_filename(in_path: str, method: str,
         using the conventions detailed in the assignment description.
     '''
 
+    prefix: Final = os.path.join(out_dir, path_base(in_file))
     suffix: Final = f'_{word_size}' if word_size is not None else ''
-    return in_path + f'_{method}' + suffix
+    return prefix + f'_{method}' + suffix
 
 
 def _index_row(row: str) -> str:
@@ -91,8 +96,6 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         otherwise.
     '''
 
-    logging.debug('Indexing %s to %s', in_file, out_file)
-
     with open(in_file, 'r') as ifile:
         contents = ifile.read().splitlines()
 
@@ -100,10 +103,12 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         out_file += '_sorted'
         contents = sorted(contents)
 
-    index: Final = ''.join(map(_index_row, contents))
+    logging.debug('Indexing %s to %s', in_file, out_file)
+    index: Final = '\n'.join(map(_index_row, contents))
 
     with open(out_file, 'w') as ofile:
         ofile.write(index)
+        ofile.write('\n')
 
     return out_file
 
@@ -131,7 +136,7 @@ def compress_index(in_file: str, out_dir: str, method: str,
     '''
 
     compressor: Type[CompressionBase]
-    out_file: Final = _compression_filename(in_file, method, word_size)
+    out_file: Final = _compression_file(in_file, out_dir, method, word_size)
 
     logging.debug('Compressing index %s to %s', in_file, out_file)
 
