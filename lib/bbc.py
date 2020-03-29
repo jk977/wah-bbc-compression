@@ -94,7 +94,7 @@ def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
         -> str:
     '''
     Creates the next compressed atom, consisting of a header byte
-    and followed by trailing literals if is_dirty is false.
+    and followed by trailing literals if ``is_dirty`` is ``False``.
 
     Args:
         gaps: the number of gaps to encode in the atom.

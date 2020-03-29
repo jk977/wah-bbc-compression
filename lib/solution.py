@@ -15,8 +15,8 @@ from lib.util import binstr, path_base
 
 
 def _compression_file(in_file: str, out_dir: str, method: str,
-                          word_size: Optional[int] = None) \
-                            -> str:
+                      word_size: Optional[int] = None) \
+                        -> str:
     '''
     Get the formatted name of the file to compress ``in_file`` into.
 
