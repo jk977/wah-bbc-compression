@@ -6,8 +6,6 @@ modules in the package to produce the required functions.
 import logging
 import os
 
-from typing import Final, Optional, Type
-
 from lib.compression import CompressionBase
 from lib.bbc import BBC
 from lib.wah import WAH
@@ -15,7 +13,7 @@ from lib.util import binstr, path_base
 
 
 def _compression_file(in_file: str, out_dir: str, method: str,
-                      word_size: Optional[int] = None) \
+                      word_size=None) \
                         -> str:
     '''
     Get the formatted name of the file to compress ``in_file`` into.
@@ -31,8 +29,8 @@ def _compression_file(in_file: str, out_dir: str, method: str,
         using the conventions detailed in the assignment description.
     '''
 
-    prefix: Final = os.path.join(out_dir, path_base(in_file))
-    suffix: Final = f'_{word_size}' if word_size is not None else ''
+    prefix = os.path.join(out_dir, path_base(in_file))
+    suffix = f'_{word_size}' if word_size is not None else ''
     return prefix + f'_{method}' + suffix
 
 
@@ -55,26 +53,26 @@ def _index_row(row: str) -> str:
     [animal, age, adopted] = row.split(',')
 
     # animals allowed in the animal column
-    animals: Final = ['cat', 'dog', 'turtle', 'bird']
+    animals = ['cat', 'dog', 'turtle', 'bird']
 
     # number of bits in each column
-    animal_width: Final = 4
-    age_width: Final = 10
-    adopted_width: Final = 2
+    animal_width = 4
+    age_width = 10
+    adopted_width = 2
 
     # set of 4 bits representing the animal type, in the same left-to-right
     # order as the animals array.
-    animal_cols: Final = 0b1000 >> animals.index(animal)
-    animal_bits: Final = binstr(animal_cols, animal_width)
+    animal_cols = 0b1000 >> animals.index(animal)
+    animal_bits = binstr(animal_cols, animal_width)
 
     # set of 10 bits representing the animal age, in buckets of 10 years
     # (0b1000000000 -> 1-10 years, 0b0100000000 -> 11-20, etc.)
-    age_cols: Final = 0b1000000000 >> (int(age) - 1) // 10
-    age_bits: Final = binstr(age_cols, age_width)
+    age_cols = 0b1000000000 >> (int(age) - 1) // 10
+    age_bits = binstr(age_cols, age_width)
 
     # set of 2 bits representing whether or not the animal is adopted
-    adopted_cols: Final = 0b10 if adopted == 'True' else 0b01
-    adopted_bits: Final = binstr(adopted_cols, adopted_width)
+    adopted_cols = 0b10 if adopted == 'True' else 0b01
+    adopted_bits = binstr(adopted_cols, adopted_width)
 
     return animal_bits + age_bits + adopted_bits
 
@@ -104,7 +102,7 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
         contents = sorted(contents)
 
     logging.debug('Indexing %s to %s', in_file, out_file)
-    index: Final = '\n'.join(map(_index_row, contents))
+    index = '\n'.join(map(_index_row, contents))
 
     with open(out_file, 'w') as ofile:
         ofile.write(index)
@@ -114,7 +112,7 @@ def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
 
 
 def compress_index(in_file: str, out_dir: str, method: str,
-                   word_size: Optional[int] = None) \
+                   word_size=None) \
                        -> str:
     '''
     Compress ``in_file`` using the given compression method, writing the result
@@ -135,8 +133,7 @@ def compress_index(in_file: str, out_dir: str, method: str,
                              algorithm.
     '''
 
-    compressor: Type[CompressionBase]
-    out_file: Final = _compression_file(in_file, out_dir, method, word_size)
+    out_file = _compression_file(in_file, out_dir, method, word_size)
 
     logging.debug('Compressing index %s to %s', in_file, out_file)
 
@@ -150,6 +147,6 @@ def compress_index(in_file: str, out_dir: str, method: str,
     else:
         raise NotImplementedError(f'compress_index(method = {method})')
 
-    columns: Final = 16
+    columns = 16
     compressor.write(in_file, out_file, columns, word_size)
     return out_file

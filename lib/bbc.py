@@ -7,21 +7,19 @@ for the differences.
 
 import logging
 
-from typing import Final, Tuple
-
 from lib.compression import CompressionBase
 from lib.util import all_bits, binstr, chunks_of
 
 
 # BBC compression constants
-bits_per_byte: Final = 8
+bits_per_byte = 8
 
-header_gap_bits: Final = 3  # number of bits in header gap size
-header_gap_max: Final = all_bits(header_gap_bits)  # max gap size in header
-max_gap_bits: Final = 2 * bits_per_byte - 1        # max bits used for gap size
+header_gap_bits = 3  # number of bits in header gap size
+header_gap_max = all_bits(header_gap_bits)  # max gap size in header
+max_gap_bits = 2 * bits_per_byte - 1        # max bits used for gap size
 
 
-def get_gaps(bs: str) -> Tuple[str, int]:
+def get_gaps(bs: str):
     '''
     Args:
         bs: the string to check for gaps.
@@ -31,16 +29,16 @@ def get_gaps(bs: str) -> Tuple[str, int]:
         gaps and ``gaps`` is the number of gap bytes to encode.
     '''
 
-    bit_idx: Final = bs.find('1')
-    gap_bits: Final = bit_idx if bit_idx >= 0 else len(bs)
-    gap_max: Final = all_bits(max_gap_bits)
+    bit_idx = bs.find('1')
+    gap_bits = bit_idx if bit_idx >= 0 else len(bs)
+    gap_max = all_bits(max_gap_bits)
 
     if gap_bits < bits_per_byte:
         return bs, 0
 
     # if the number of gaps found is greater than the amount that can be
     # stored in an atom, only take what can be stored
-    gaps: Final = min(gap_max, gap_bits // bits_per_byte)
+    gaps = min(gap_max, gap_bits // bits_per_byte)
     return bs[gaps * bits_per_byte:], gaps
 
 
@@ -57,7 +55,7 @@ def dirty_bit_pos(bs: str) -> int:
         is not a dirty byte.
     '''
 
-    byte: Final = bs[:bits_per_byte]
+    byte = bs[:bits_per_byte]
 
     if byte.count('1') != 1:
         return -1
@@ -65,7 +63,7 @@ def dirty_bit_pos(bs: str) -> int:
         return byte.find('1')
 
 
-def get_literals(bs: str) -> Tuple[str, str]:
+def get_literals(bs: str):
     '''
     Returns:
         a tuple ``(tail, literals)`` where ``tail`` is ``bs`` without the
@@ -73,7 +71,7 @@ def get_literals(bs: str) -> Tuple[str, str]:
         beginning of ``bs``.
     '''
 
-    literal_max: Final = 0b1111
+    literal_max = 0b1111
     literals = ''
     count = 0
 
@@ -119,15 +117,15 @@ def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
     # header begins with 3 bits that indicate the number of gap bytes.
     # (if first three bits of header are all set, the remainder of
     # gaps is stored in the bytes after the header.)
-    header_gap_bits: Final = 3
-    header_gap_max: Final = all_bits(header_gap_bits)
-    header_gap_count: Final = min(gaps, header_gap_max)
+    header_gap_bits = 3
+    header_gap_max = all_bits(header_gap_bits)
+    header_gap_count = min(gaps, header_gap_max)
 
-    max_gap_bits: Final = 2 * bits_per_byte - 1
+    max_gap_bits = 2 * bits_per_byte - 1
 
     # binary strings used in header byte
-    header_gap_bin: Final = binstr(header_gap_count, header_gap_bits)
-    special_bin: Final = binstr(special, 4)
+    header_gap_bin = binstr(header_gap_count, header_gap_bits)
+    special_bin = binstr(special, 4)
 
     # construct the header byte
     result = f'{header_gap_bin}{1 if is_dirty else 0}{special_bin}'
@@ -143,8 +141,8 @@ def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
         # the first bit of first byte is a flag indicating there's another
         # byte, and the rest of the byte is the upper bits of gaps.
         # the second byte is the lower 8 bits.
-        upper: Final = binstr(gaps >> bits_per_byte, bits_per_byte - 1)
-        lower: Final = binstr(gaps, bits_per_byte)
+        upper = binstr(gaps >> bits_per_byte, bits_per_byte - 1)
+        lower = binstr(gaps, bits_per_byte)
         result += f'1{upper}{lower}'
     elif gaps > all_bits(max_gap_bits):
         raise ValueError(f'gaps too large ({gaps} > {all_bits(max_gap_bits)})')
@@ -186,12 +184,12 @@ class BBC(CompressionBase):
 
             # get the byte after next to determine whether or not an offset
             # byte should be treated as a literal
-            lookahead_byte: Final = bs[bits_per_byte:2 * bits_per_byte]
-            offset_as_literal: Final = lookahead_byte.count('1') > 0
+            lookahead_byte = bs[bits_per_byte:2 * bits_per_byte]
+            offset_as_literal = lookahead_byte.count('1') > 0
 
             # determine the type of byte following the gaps
-            dirty_bit: Final = dirty_bit_pos(bs)
-            is_dirty: Final = (dirty_bit != -1) and not offset_as_literal
+            dirty_bit = dirty_bit_pos(bs)
+            is_dirty = (dirty_bit != -1) and not offset_as_literal
 
             if is_dirty:
                 # skip past the offset byte without encoding literals,
@@ -206,7 +204,7 @@ class BBC(CompressionBase):
                 special = len(literals) // bits_per_byte
                 logging.info('Literals found: %d', special)
 
-            atom: Final = create_atom(gaps, is_dirty, special, literals)
+            atom = create_atom(gaps, is_dirty, special, literals)
             logging.info('Created atom of length %d', len(atom))
             logging.debug('Atom: %s', atom)
 

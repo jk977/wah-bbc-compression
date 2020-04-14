@@ -3,7 +3,6 @@ Utility functions used across multiple modules.
 '''
 
 import os
-from typing import Any, Optional
 
 
 def all_bits(bit_count: int) -> int:
@@ -20,7 +19,7 @@ def all_bits(bit_count: int) -> int:
     return 2**bit_count - 1
 
 
-def binstr(n: int, length: Optional[int] = None) -> str:
+def binstr(n: int, length=None) -> str:
     '''
     Convert ``n`` to a binary string. Similar to ``bin()`` but without the
     prefix ``0b`` and with the ability to specify the string length.
@@ -45,7 +44,7 @@ def binstr(n: int, length: Optional[int] = None) -> str:
     return fmt.format(n)
 
 
-def chunks_of(n: int, ls: Any):
+def chunks_of(n: int, ls):
     '''
     Generate pieces of a slice-able object in chunks of ``n``.
 

@@ -4,7 +4,6 @@ algorithm, in addition to WAH-related functions.
 '''
 
 import logging
-from typing import Final, Tuple
 
 from lib.compression import CompressionBase
 from lib.util import binstr
@@ -26,21 +25,21 @@ def run_length(bs: str, word_size: int) -> int:
     if len(bs) == 0:
         return 0
 
-    section_size: Final = word_size - 1
-    toggle_bit: Final = '0' if bs[0] == '1' else '1'
-    bit_idx: Final = bs.find(toggle_bit)
-    run_bits: Final = bit_idx if bit_idx >= 0 else len(bs)
+    section_size = word_size - 1
+    toggle_bit = '0' if bs[0] == '1' else '1'
+    bit_idx = bs.find(toggle_bit)
+    run_bits = bit_idx if bit_idx >= 0 else len(bs)
 
     if run_bits < section_size:
         return 0
 
-    run_words: Final = run_bits // section_size
-    max_run_words: Final = 2**(section_size - 1) - 1
+    run_words = run_bits // section_size
+    max_run_words = 2**(section_size - 1) - 1
 
     return min(max_run_words, run_words)
 
 
-def encode_run(bs: str, word_size: int) -> Tuple[str, str]:
+def encode_run(bs: str, word_size: int):
     '''
     Encode the run at the beginning of ``bs``. Assumes that a run is present,
     and that the run's length is in the range ``(word_size - 1)`` to
@@ -55,20 +54,20 @@ def encode_run(bs: str, word_size: int) -> Tuple[str, str]:
         ``bs`` with ``encoded_run`` removed.
     '''
 
-    runs: Final = run_length(bs, word_size)
-    section_size: Final = word_size - 1
+    runs = run_length(bs, word_size)
+    section_size = word_size - 1
 
     # store length in the least significant bits of resulting
     # word, set the first bit to 1 to signify a run, and set
     # the second bit to the type of run.
-    encoded_runs: Final = binstr(runs, section_size - 1)
-    result: Final = f'1{bs[0]}{encoded_runs}'
+    encoded_runs = binstr(runs, section_size - 1)
+    result = f'1{bs[0]}{encoded_runs}'
     logging.debug('Encoded %s-run of %d words', bs[0], runs)
 
     return bs[section_size * runs:], result
 
 
-def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
+def encode_literal(bs: str, word_size: int):
     '''
     Encode the next ``(word_size - 1)`` bits as a literal, padding the right
     with zeroes as needed.
@@ -85,12 +84,12 @@ def encode_literal(bs: str, word_size: int) -> Tuple[str, str]:
         ``literal`` is padded with zeroes on the right.
     '''
 
-    section_size: Final = word_size - 1
-    literal: Final = bs[:section_size]
+    section_size = word_size - 1
+    literal = bs[:section_size]
 
     # format string is ugly, but all this does is create a string beginning
     # with 0, followed by the literal padded to become exactly one word long
-    encoded_literal: Final = f'0{{:<0{section_size}s}}'.format(literal)
+    encoded_literal = f'0{{:<0{section_size}s}}'.format(literal)
     return bs[section_size:], encoded_literal
 
 
@@ -108,7 +107,7 @@ class WAH(CompressionBase):
         logging.info('Word size: %d', word_size)
         logging.debug('Bits: %s', bs)
 
-        section_size: Final = word_size - 1
+        section_size = word_size - 1
         result = ''
 
         while len(bs) > 0:
