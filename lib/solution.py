@@ -77,25 +77,26 @@ def _index_row(row: str) -> str:
     return animal_bits + age_bits + adopted_bits
 
 
-def create_index(in_file: str, out_file: str, sort_data: bool) -> str:
+def create_index(in_file: str, out_dir: str, sort_data: bool) -> str:
     '''
     Create an index for the data from ``in_file`` and write the result to
-    ``out_file``.
+    ``out_dir``.
 
     Args:
         in_file: the path to the file to index.
-        out_file: the path to write the index to.
+        out_dir: the path to write the index to.
         sort_data: whether or not to sort in_file's lines lexicographically
                    before indexing.
 
     Returns:
-        the path to the resulting index file. This is ``out_file`` if
-        ``sort_data`` is ``False``, or ``out_file`` appended with '_sorted'
-        otherwise.
+        the path to the resulting index file. The format of this is specified
+        by the assignment.
     '''
 
     with open(in_file, 'r') as ifile:
         contents = ifile.read().splitlines()
+
+    out_file = os.path.join(out_dir, path_base(in_file))
 
     if sort_data:
         out_file += '_sorted'

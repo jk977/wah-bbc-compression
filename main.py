@@ -9,7 +9,6 @@ import os
 from argparse import ArgumentParser
 
 from lib.solution import create_index, compress_index
-from lib.util import path_base
 
 
 def _process_args():
@@ -73,8 +72,7 @@ def main():
     # due to the assignment specification, ``create_index()`` may use a
     # different output filename than the one it's given. because of this,
     # ``create_index()`` returns the file it writes to.
-    suggested_idx = os.path.join(output_path, path_base(data_file))
-    idx_file = create_index(data_file, suggested_idx, sort_data)
+    idx_file = create_index(data_file, output_path, sort_data)
     logging.info('Index file written to %s', idx_file)
 
     cmp_file = compress_index(idx_file, output_path, method, word_size)

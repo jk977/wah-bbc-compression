@@ -157,16 +157,16 @@ class TestWAH(ut.TestCase):
         # WAH example from class slides.
         # Note: The slides contained an error in encoding the bits; this
         #       has been corrected in the test.
-        wah_slide_example: Final = '00000000' + '00000000' \
+        wah_slide_example = '00000000' + '00000000' \
             + '00010000' + '00000000' * 13 \
             + '10101010' + '11110000'
-        wah_slide_corrected_result: Final = '00000000' + '00000000' \
+        wah_slide_corrected_result = '00000000' + '00000000' \
             + '00001000' + '00000000' \
             + '10000000' + '00000000' \
             + '00000000' + '00000011' \
             + '00000101' + '01010111' \
             + '10000000' + '00000000'
-        wah_slide_word_size: Final = 32
+        wah_slide_word_size = 32
 
         self.assertEqual(WAH.compress(wah_slide_example, wah_slide_word_size),
                          wah_slide_corrected_result)
@@ -175,7 +175,7 @@ class TestWAH(ut.TestCase):
         # Note: The algorithm has been slightly modified from the patent;
         #       trailing bits are encoded differently than the patent.
         #       This is accounted for in the test.
-        patent_example: Final = '10000000' + '00000000' \
+        patent_example = '10000000' + '00000000' \
             + '00000000' + '00000000' \
             + '00000000' + '00000000' \
             + '00000000' + '00001000' \
@@ -186,14 +186,14 @@ class TestWAH(ut.TestCase):
             + '00000000' + '00000000' \
             + '00000000' + '00000000' \
             + '00000100' + '000111'
-        patent_modified_result: Final = '01000000' + '00000000' \
+        patent_modified_result = '01000000' + '00000000' \
             + '10000000' + '00000011' \
             + '01000011' + '00110011' \
             + '11000000' + '00000011' \
             + '01111110' + '00000000' \
             + '10000000' + '00000010' \
             + '01000001' + '11000000'
-        patent_word_size: Final = 16
+        patent_word_size = 16
 
         self.assertEqual(WAH.compress(patent_example, patent_word_size),
                          patent_modified_result)

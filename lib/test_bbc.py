@@ -5,17 +5,15 @@ Unit tests for BBC implementation.
 import itertools as it
 import unittest as ut
 
-from typing import Final
-
 import lib.bbc as bbc
 
 from lib.bbc import BBC
 from lib.util import all_bits, binstr
 
 
-bits_per_byte: Final = 8
-gap_max: Final = all_bits(15)       # max number of gaps in atom
-lit_max: Final = all_bits(4)        # max number of literals in atom
+bits_per_byte = 8
+gap_max = all_bits(15)       # max number of gaps in atom
+lit_max = all_bits(4)        # max number of literals in atom
 
 
 ##############
@@ -57,8 +55,8 @@ class TestBBC(ut.TestCase):
         Test ``bbc.get_literals()`` with single-byte literals.
         '''
 
-        literals: Final = ['00000011', '10000001', '10001001',
-                           '10011001', '11111111', '11111111']
+        literals = ['00000011', '10000001', '10001001',
+                    '10011001', '11111111', '11111111']
 
         for literal in literals:
             self.assertEqual(bbc.get_literals(literal), ('', literal))
@@ -69,8 +67,8 @@ class TestBBC(ut.TestCase):
         one atom.
         '''
 
-        literals: Final = ['00000011', '10000001', '10001001',
-                           '10011001', '11111111', '11111111']
+        literals = ['00000011', '10000001', '10001001',
+                    '10011001', '11111111', '11111111']
 
         for literal in literals:
             for i in range(1, lit_max + 1):
@@ -90,9 +88,9 @@ class TestBBC(ut.TestCase):
         into one atom.
         '''
 
-        lit_max_bits: Final = lit_max * bits_per_byte
-        literals: Final = ['00000011', '10000001', '10001001',
-                           '10011001', '11111111', '11111111']
+        lit_max_bits = lit_max * bits_per_byte
+        literals = ['00000011', '10000001', '10001001',
+                    '10011001', '11111111', '11111111']
 
         for literal in literals:
             for i in range(lit_max + 1, 100):
@@ -198,7 +196,7 @@ class TestBBC(ut.TestCase):
         '''
 
         for gaps in range(1, all_bits(3)):
-            gap_prefix: Final = binstr(gaps, 3)
+            gap_prefix = binstr(gaps, 3)
 
             # only gap
             self.assertEqual(BBC.compress('00000000' * gaps),
@@ -233,7 +231,7 @@ class TestBBC(ut.TestCase):
         '''
 
         for gaps in range(all_bits(3), all_bits(7) + 1):
-            gap_bin: Final = '0' + binstr(gaps, 7)
+            gap_bin = '0' + binstr(gaps, 7)
 
             # only gap
             self.assertEqual(BBC.compress('00000000' * gaps),
