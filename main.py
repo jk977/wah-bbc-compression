@@ -5,10 +5,12 @@ Command-line interface for compression algorithms. Run
 
 import logging
 import os
+import sys
 
 from argparse import ArgumentParser
 
-from lib.solution import create_index, compress_index
+from lib.wah import WAH
+from lib.bbc import BBC
 
 
 def _process_args():
@@ -21,28 +23,23 @@ def _process_args():
 
     parser = ArgumentParser(description='Index and compress data files.')
 
-    parser.add_argument('data_file', type=str,
-                        help='File containing data to be indexed.')
-    parser.add_argument('output_path', type=str, default='.',
-                        help='Path to store resulting files in (default: .)')
-    parser.add_argument('--word-size', type=int, dest='word_size',
-                        help='The word size for compression, if applicable.')
-    parser.add_argument('--sort', dest='sort_data', action='store_true',
-                        help='Whether or not to sort the data file.')
+    parser.add_argument('--word-size', type=int, dest='word_size', default=8,
+                        help='The word size for compression, if applicable '
+                        '(default: 8)')
 
     algos = parser.add_mutually_exclusive_group(required=True)
-    logs = parser.add_argument_group(title='Debugging')
+    logs = parser.add_argument_group(title='debugging')
 
-    algos.add_argument('--wah', dest='method', action='store_const',
-                       const='WAH', help='Word-aligned hybrid compression')
-    algos.add_argument('--bbc', dest='method', action='store_const',
-                       const='BBC', help='Byte-aligned bitmap compression')
+    algos.add_argument('--wah', dest='compressor', action='store_const',
+                       const=WAH, help='Word-aligned hybrid compression')
+    algos.add_argument('--bbc', dest='compressor', action='store_const',
+                       const=BBC, help='Byte-aligned bitmap compression')
 
     logs.add_argument('--log-level', type=str, dest='log_level',
                       default='WARNING', help='Log level (default: WARNING; '
                       'see logging.setLevel())')
     logs.add_argument('--log-file', type=str, dest='log_file',
-                      help='Output logs to the given file instead of stdout.')
+                      help='Output logs to the given file instead of stdout')
 
     return parser.parse_args()
 
@@ -58,25 +55,10 @@ def main():
                         filename=args.log_file,
                         filemode='w')
 
-    data_file = args.data_file
-    output_path = args.output_path
-    sort_data = args.sort_data
-    method = args.method
-    word_size = args.word_size
+    data = sys.stdin.read().strip()
+    compressed = args.compressor.compress(data, word_size=args.word_size)
 
-    logging.debug('Data file: %s', data_file)
-    logging.debug('Compression method: %s', method)
-    logging.debug('Word size: %d', word_size)
-    logging.debug('Sort data: %s', sort_data)
-
-    # due to the assignment specification, ``create_index()`` may use a
-    # different output filename than the one it's given. because of this,
-    # ``create_index()`` returns the file it writes to.
-    idx_file = create_index(data_file, output_path, sort_data)
-    logging.info('Index file written to %s', idx_file)
-
-    cmp_file = compress_index(idx_file, output_path, method, word_size)
-    logging.info('Compressed file written to %s', cmp_file)
+    print(compressed)
 
 
 if __name__ == '__main__':
