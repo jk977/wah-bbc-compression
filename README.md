@@ -17,9 +17,9 @@ The source code for the compression algorithms are located in `lib/wah.py` and `
 
 > `import lib.bbc as bbc`
 
-`wah` and `bbc` both have a `compress()` method that takes a `BitArray` containing the data to compress and returns the compressed `BitArray`. `wah.compress()` also requires the word size to be used in the compression algorithm. See the module's documentation for more details.
+The `wah` and `bbc` modules both have `compress()` and `decompress()` methods that take a `BitArray` containing the data to compress and returns the compressed `BitArray`. The `wah` module also requires an additional parameter: the word size to be used in the compression algorithm. See the module's documentation for more details.
 
-There is a command-line interface implemented in `compress.py`, which also serves as an example of how the methods in the aforementioned source files can be used. For `compress.py` usage, run `python compress.py --help`.
+There is a command-line interface for the `compress()` methods implemented in `compress.py`, which also serves as an example of how the methods in the aforementioned source files can be used. For `compress.py` usage, run `python compress.py --help`.
 
 ## Notes
 
