@@ -9,7 +9,7 @@ from bitstring import BitArray
 
 import lib.bbc as bbc
 
-from lib.util import all_bits, binstr
+from lib.util import all_bits
 
 
 bits_per_byte = 8

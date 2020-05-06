@@ -22,7 +22,7 @@ import logging
 
 from bitstring import BitArray
 
-from lib.util import all_bits, chunks_of
+from lib.util import all_bits
 
 
 # BBC compression constants
@@ -89,7 +89,7 @@ def get_literals(bs: BitArray):
     literals = BitArray()
     count = 0
 
-    for byte in chunks_of(bits_per_byte, bs):
+    for byte in bs.cut(bits_per_byte):
         if byte.count(1) == 0:
             break
 
