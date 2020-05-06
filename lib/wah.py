@@ -12,7 +12,7 @@ from lib.compression import CompressionBase
 def run_length(bs: BitArray, word_size: int) -> int:
     '''
     Args:
-        bs: the string to analyze.
+        bs: the bits to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -46,7 +46,7 @@ def encode_run(bs: BitArray, word_size: int):
     ``(word_size - 1) * (2**(word_size - 2) - 1)``.
 
     Args:
-        bs: the string to analyze.
+        bs: the bits to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -68,13 +68,13 @@ def encode_run(bs: BitArray, word_size: int):
     return bs[section_size * runs:], result
 
 
-def encode_literal(bs: str, word_size: int):
+def encode_literal(bs: BitArray, word_size: int):
     '''
     Encode the next ``(word_size - 1)`` bits as a literal, padding the right
     with zeroes as needed.
 
     Args:
-        bs: the string to analyze.
+        bs: the bits to analyze.
         word_size: the WAH word size.
 
     Returns:
@@ -88,8 +88,8 @@ def encode_literal(bs: str, word_size: int):
     section_size = word_size - 1
     literal = bs[:section_size]
 
-    # format string is ugly, but all this does is create a string beginning
-    # with 0, followed by the literal padded to become exactly one word long
+    # create a string beginning with 0, followed by the literal padded to
+    # become exactly one word long
     encoded_literal = BitArray(uint=0, length=1)
     encoded_literal += BitArray(uint=literal.uint, length=section_size)
 

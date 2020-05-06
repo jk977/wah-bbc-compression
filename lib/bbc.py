@@ -24,7 +24,7 @@ max_gap_bits = 2 * bits_per_byte - 1        # max bits used for gap size
 def get_gaps(bs: BitArray):
     '''
     Args:
-        bs: the string to check for gaps.
+        bs: the bits to check for gaps.
 
     Returns:
         a tuple ``(tail, gaps)``, where ``tail`` is ``bs`` without the leading
@@ -50,7 +50,7 @@ def dirty_bit_pos(bs: BitArray) -> int:
     (i.e., is an offset, or dirty, byte).
 
     Args:
-        bs: the string to check for a dirty byte.
+        bs: the bits to check for a dirty byte.
 
     Returns:
         the position of the dirty bit in the next byte, or -1 if the byte
@@ -69,7 +69,7 @@ def get_literals(bs: BitArray):
     '''
     Returns:
         a tuple ``(tail, literals)`` where ``tail`` is ``bs`` without the
-        literals, and ``literals`` is the string of literal bytes at the
+        literals, and ``literals`` is the series of literal bytes at the
         beginning of ``bs``.
     '''
 
@@ -94,7 +94,7 @@ def create_atom(gaps: int,
                 is_dirty: bool,
                 special: int,
                 literals: BitArray) \
-        -> str:
+        -> BitArray:
     '''
     Creates the next compressed atom, consisting of a header byte
     and followed by trailing literals if ``is_dirty`` is ``False``.
@@ -111,12 +111,11 @@ def create_atom(gaps: int,
         literals: the trailing literals to add to the end of the atom.
 
     Returns:
-        an atom encoding a sequence of bits with the information given by
-        the parameters.
+        an atom encoding the information given by the parameters.
 
     Raises:
-        ValueError: if ``literals`` is ``None`` when a ``str`` is expected,
-                    or if ``gaps`` is too large.
+        ValueError: if ``literals`` is ``None`` when a ``BitArray`` is
+                    expected, or if ``gaps`` is too large.
     '''
 
     if not is_dirty and literals is None:
