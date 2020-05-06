@@ -10,8 +10,8 @@ import sys
 from argparse import ArgumentParser
 from bitstring import BitArray
 
-from lib.wah import WAH
-from lib.bbc import BBC
+import lib.wah as wah
+import lib.bbc as bbc
 
 
 def _process_args():
@@ -31,10 +31,10 @@ def _process_args():
     algos = parser.add_mutually_exclusive_group(required=True)
     logs = parser.add_argument_group(title='debugging')
 
-    algos.add_argument('--wah', dest='compressor', action='store_const',
-                       const=WAH, help='Word-aligned hybrid compression')
-    algos.add_argument('--bbc', dest='compressor', action='store_const',
-                       const=BBC, help='Byte-aligned bitmap compression')
+    algos.add_argument('--wah', dest='algorithm', action='store_const',
+                       const='WAH', help='Word-aligned hybrid compression')
+    algos.add_argument('--bbc', dest='algorithm', action='store_const',
+                       const='BBC', help='Byte-aligned bitmap compression')
 
     logs.add_argument('--log-level', type=str, dest='log_level',
                       default='WARNING', help='Log level (default: WARNING; '
@@ -57,7 +57,15 @@ def main():
                         filemode='w')
 
     data = BitArray(bytes=sys.stdin.buffer.read().strip())
-    compressed = args.compressor.compress(data, word_size=args.word_size)
+
+    if args.algorithm == 'WAH':
+        compressed, final_length = wah.compress(data, args.word_size)
+        logging.info('Bits used in final word: %d', final_length)
+    elif args.algorithm == 'BBC':
+        compressed = bbc.compress(data)
+    else:
+        raise NotImplementedError(f'Unrecognized algorithm: {args.algorithm}')
+
     sys.stdout.buffer.write(compressed.bytes)
 
 

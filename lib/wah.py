@@ -182,7 +182,7 @@ def decompress(bs, word_size, final_length):
 
     while len(bs) > 0:
         next_word = bs[:word_size]
-        bs[word_size:]
+        bs = bs[word_size:]
 
         is_run = next_word[0]
 
