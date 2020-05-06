@@ -1,11 +1,6 @@
 import random
-import logging
 
 from bitstring import BitArray
-
-
-logging.basicConfig(level=logging.DEBUG)
-
 
 import lib.wah as wah
 import lib.bbc as bbc
@@ -28,10 +23,11 @@ def fuzz_compressor(ntimes, compress, decompress, str_len):
 
 
 def fuzz_wah(ntimes, str_len):
-    for word_size in range(8, 65):
+    for word_size in range(2, 65):
+        print(f'Fuzzing WAH {word_size}')
         fuzz_compressor(ntimes, \
                         lambda bs: wah.compress(bs, word_size), \
-                        lambda result: wah.decompress(*result, word_size), \
+                        lambda res: wah.decompress(*res, word_size), \
                         str_len)
 
 
@@ -40,8 +36,14 @@ def fuzz_bbc(ntimes, str_len):
 
 
 if __name__ == '__main__':
-    print('Fuzzing BBC...')
-    fuzz_bbc(10000, 10)
+    print('Fuzzing WAH with small inputs...')
+    fuzz_wah(1000, 64)
 
-    print('Fuzzing WAH...')
-    fuzz_wah(10, 10)
+    print('Fuzzing BBC with small inputs...')
+    fuzz_bbc(1000, 64)
+
+    print('Fuzzing WAH with large inputs...')
+    fuzz_wah(5, 10000)
+
+    print('Fuzzing BBC with large inputs...')
+    fuzz_bbc(5, 10000)

@@ -167,9 +167,6 @@ def decompress(bs, final_length, word_size):
         final_length: the number of bits used in the final word of ``bs``.
     '''
 
-    if final_length is None:
-        final_length = word_size
-
     if len(bs) == 0:
         raise ValueError('bs must have a length greater than 0')
     elif word_size <= 1:
@@ -192,7 +189,8 @@ def decompress(bs, final_length, word_size):
             runs = next_word[2:].uint
             logging.info('Expanding %d-run of length %d', run_type, runs)
 
-            result += [run_type] * runs
+            section_size = word_size - 1
+            result += [run_type] * section_size * runs
         else:
             if len(bs) > 0:
                 # end isn't reached, so don't worry about trailing bits
