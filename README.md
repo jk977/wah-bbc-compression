@@ -13,9 +13,10 @@ This project implements the word-aligned hybrid (WAH) compression algorithm and 
 
 The source code for the compression algorithms are located in `lib/wah.py` and `lib/bbc.py`. To import these into a Python script, include the following lines:
 
-> `import lib.wah as wah`
-
-> `import lib.bbc as bbc`
+```py
+import lib.wah as wah
+import lib.bbc as bbc
+```
 
 The `wah` and `bbc` modules both have `compress()` and `decompress()` methods that take a `BitArray` containing the data to compress and returns the compressed `BitArray`. The `wah` module also requires an additional parameter: the word size to be used in the compression algorithm. See the module's documentation for more details.
 
