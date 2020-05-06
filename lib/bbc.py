@@ -268,10 +268,12 @@ def decompress(bs):
 
         if is_dirty:
             logging.info('Adding offset byte with bit @ %d', special)
-
             end_bits = bits_per_byte - special - 1
+
             result += BitArray(uint=1, length=bits_per_byte - end_bits)
-            result += BitArray(uint=0, length=end_bits)
+
+            if end_bits > 0:
+                result += BitArray(uint=0, length=end_bits)
         else:
             logging.info('Adding %d literal bytes', special)
             lit_bits = special * bits_per_byte
