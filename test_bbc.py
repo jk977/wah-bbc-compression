@@ -9,7 +9,6 @@ from bitstring import BitArray
 
 import lib.bbc as bbc
 
-from lib.bbc import BBC
 from lib.util import all_bits, binstr
 
 
@@ -208,7 +207,7 @@ class TestBBC(ut.TestCase):
 
     def test_compress_short(self):
         '''
-        Test ``BBC.compress()`` using bytes with gaps that can be encoded in
+        Test ``bbc.compress()`` using bytes with gaps that can be encoded in
         the header.
         '''
 
@@ -217,31 +216,31 @@ class TestBBC(ut.TestCase):
 
             # only gap
             bs = BitArray(bin='00000000' * gaps)
-            self.assertEqual(BBC.compress(bs), gap_prefix + '0b00000')
+            self.assertEqual(bbc.compress(bs), gap_prefix + '0b00000')
 
             # gap with offset byte
             bs = BitArray(bin='00000000' * gaps + '01000000')
             expected = gap_prefix + '0b10001'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with literals
             bs = BitArray(bin='00000000' * gaps + '11100000' '00000111')
             expected = gap_prefix + '0b000101110000000000111'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with offset byte, then literals
             bs = BitArray(bin='00000000' * gaps + '000000011110000000000111')
             expected = gap_prefix + '0b00011000000011110000000000111'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with literals, then offset byte
             bs = BitArray(bin='00000000' * gaps + '111000000000011101000000')
             expected = gap_prefix + '0b00011111000000000011101000000'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
     def test_compress_mid(self):
         '''
-        Test ``BBC.compress()`` using bytes with gaps that can be encoded in
+        Test ``bbc.compress()`` using bytes with gaps that can be encoded in
         one byte after the header.
         '''
 
@@ -250,37 +249,37 @@ class TestBBC(ut.TestCase):
 
             # only gap
             bs = BitArray(bin='00000000' * gaps)
-            self.assertEqual(BBC.compress(bs), '0b11100000' + gap_bs)
+            self.assertEqual(bbc.compress(bs), '0b11100000' + gap_bs)
 
             # gap with offset byte
             bs = BitArray(bin='00000000' * gaps + '00100000')
             expected = '0b11110010' + gap_bs
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with literals
             bs = BitArray(bin='00000000' * gaps + '1001001001001001')
             expected = '0b11100010' + gap_bs + '0b1001001001001001'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with offset byte, then literals
             bs = BitArray(bin='00000000' * gaps + '100000001001001001001001')
             expected = '0b11100011' + gap_bs + '0b100000001001001001001001'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
             # gap with literals, then offset byte
             bs = BitArray(bin='00000000' * gaps + '100100100100100110000000')
             expected = '0b11100011' + gap_bs + '0b100100100100100110000000'
-            self.assertEqual(BBC.compress(bs), expected)
+            self.assertEqual(bbc.compress(bs), expected)
 
     def test_compress_long(self):
         '''
-        Test ``BBC.compress()`` using bytes with gaps that can be encoded in
+        Test ``bbc.compress()`` using bytes with gaps that can be encoded in
         two bytes after the header.
         '''
 
         bs = BitArray(bin='00000000' * 510)
         expected = BitArray(bin='111000001000000111111110')
-        self.assertEqual(BBC.compress(bs), expected)
+        self.assertEqual(bbc.compress(bs), expected)
 
 
 if __name__ == '__main__':

@@ -9,8 +9,6 @@ from bitstring import BitArray
 
 import lib.wah as wah
 
-from lib.wah import WAH
-
 
 #####################################
 # string wrappers for WAH functions #
@@ -45,7 +43,7 @@ def encode_literal(s, ws):
 
 
 def compress(s, ws):
-    return bs_to_str(WAH.compress(str_to_bs(s), ws))
+    return bs_to_str(wah.compress(str_to_bs(s), ws)[0])
 
 
 ##############
@@ -144,8 +142,14 @@ class TestWAH(ut.TestCase):
         '''
 
         for ws in range(3, 65):
+            try:
+                # an empty input should raise an exception
+                compress('', ws)
+                self.assertTrue(False)
+            except Exception:
+                pass
+
             # test literal zero-padding on short inputs
-            self.assertEqual(compress('', ws), '')
             self.assertEqual(compress('0', ws), '0'*ws)
             self.assertEqual(compress('1', ws), '01' + '0'*(ws - 2))
 

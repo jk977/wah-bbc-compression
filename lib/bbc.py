@@ -3,13 +3,25 @@ Contains an implementation of the byte-aligned bitmap compression (BBC)
 algorithm, in addition to BBC-related utility functions. The algorithm
 has been modified from the original; see the ``BBC`` class documentation
 for the differences.
+
+The following modifications have been made to the BBC patent's algorithm
+description:
+
+1. Gap length is encoded in three bits rather than five.
+2. The last field of the header byte uses four bits rather than three.
+3. Instead of using a split to indicate an offset byte in the header byte,
+   the fourth bit of the header is a flag that indicates the presence of an
+   offset byte.
+4. For encoding the gap length across two bytes, the first byte contains
+   the most significant bits rather than the least significant bits.
+5. Offset bytes are allowed as literals, and can be literally encoded in
+   the beginning, middle, or end of a sequence of literals.
 '''
 
 import logging
 
 from bitstring import BitArray
 
-from lib.compression import CompressionBase
 from lib.util import all_bits, chunks_of
 
 
@@ -162,104 +174,112 @@ def create_atom(gaps: int,
     return result
 
 
-class BBC(CompressionBase):
+def compress(bs):
     '''
-    BBC algorithm implementation. The following modifications have been made to
-    the BBC patent's algorithm description:
+    Compress the given bits using the BBC algorithm.
 
-    1. Gap length is encoded in three bits rather than five.
-    2. The last field of the header byte uses four bits rather than three.
-    3. Instead of using a split to indicate an offset byte in the header byte,
-       the fourth bit of the header is a flag that indicates the presence of an
-       offset byte.
-    4. For encoding the gap length across two bytes, the first byte contains
-       the most significant bits rather than the least significant bits.
-    5. Offset bytes are allowed as literals, and can be literally encoded in
-       the beginning, middle, or end of a sequence of literals.
+    Args:
+        bs: the bits to compress.
+
+    Returns:
+        the compressed ``bs``.
     '''
 
-    @staticmethod
-    def compress(bs, word_size=None):
-        logging.info('Compressing %d bits with BBC', len(bs))
-        logging.debug('Bits: %s', bs.bin)
+    if len(bs) == 0:
+        raise ValueError('bs must have a length greater than 0')
 
-        result = BitArray()
+    logging.info('Compressing %d bits with BBC', len(bs))
+    logging.debug('Bits: %s', bs.bin)
 
-        while len(bs) > 0:
-            bs, gaps = get_gaps(bs)
+    result = BitArray()
 
-            if gaps > 0:
-                logging.info('Found gap of size %d', gaps)
+    while len(bs) > 0:
+        bs, gaps = get_gaps(bs)
 
-            # get the byte after next to determine whether or not an offset
-            # byte should be treated as a literal
-            lookahead_byte = bs[bits_per_byte:2 * bits_per_byte]
-            offset_as_literal = lookahead_byte.count(1) > 0
+        if gaps > 0:
+            logging.info('Found gap of size %d', gaps)
 
-            # determine the type of byte following the gaps
-            dirty_bit = dirty_bit_pos(bs)
-            is_dirty = (dirty_bit != -1) and not offset_as_literal
+        # get the byte after next to determine whether or not an offset byte
+        # should be treated as a literal
+        lookahead_byte = bs[bits_per_byte:2 * bits_per_byte]
+        offset_as_literal = lookahead_byte.count(1) > 0
 
-            if is_dirty:
-                # skip past the offset byte without encoding literals,
-                # storing the dirty bit position in ``special``
-                bs, literals = bs[bits_per_byte:], BitArray()
-                special = dirty_bit
-                logging.info('Offset byte found: bit @ %d', dirty_bit)
-            else:
-                # literals encountered; encode and skip, storing the number
-                # of literals in ``special``
-                bs, literals = get_literals(bs)
-                special = len(literals) // bits_per_byte
-                logging.info('Literals found: %d', special)
+        # determine the type of byte following the gaps
+        dirty_bit = dirty_bit_pos(bs)
+        is_dirty = (dirty_bit != -1) and not offset_as_literal
 
-            atom = create_atom(gaps, is_dirty, special, literals)
-            logging.info('Created atom of length %d', len(atom))
-            logging.debug('Atom: %s', atom.bin)
+        if is_dirty:
+            # skip past the offset byte without encoding literals, storing the
+            # dirty bit position in ``special``
+            bs, literals = bs[bits_per_byte:], BitArray()
+            special = dirty_bit
+            logging.info('Offset byte found: bit @ %d', dirty_bit)
+        else:
+            # literals encountered; encode and skip, storing the number
+            # of literals in ``special``
+            bs, literals = get_literals(bs)
+            special = len(literals) // bits_per_byte
+            logging.info('Literals found: %d', special)
 
-            result += atom
+        atom = create_atom(gaps, is_dirty, special, literals)
+        logging.info('Created atom of length %d', len(atom))
+        logging.debug('Atom: %s', atom.bin)
 
-        logging.info('Compressed bit count: %d', len(result))
-        logging.debug('Compressed bits: %s', result.bin)
+        result += atom
 
-        return result
+    logging.info('Compressed bit count: %d', len(result))
+    logging.debug('Compressed bits: %s', result.bin)
 
-    @staticmethod
-    def decompress(bs, word_size=None):
-        logging.info('Decompressing %d bits with BBC', len(bs))
-        logging.debug('Bits: %s', bs.bin)
+    return result
 
-        result = BitArray()
 
-        while len(bs) > 0:
-            if len(bs) < bits_per_byte:
+def decompress(bs):
+    '''
+    Decompress the given BBC-compressed data. This is the inverse of
+    ``BBC.compress()``.
+
+    Args:
+        bs: the bits to compress.
+        word_size: the word size used in the algorithm.
+    '''
+
+    if len(bs) == 0:
+        raise ValueError('bs must have a length greater than 0')
+
+    logging.info('Decompressing %d bits with BBC', len(bs))
+    logging.debug('Bits: %s', bs.bin)
+
+    result = BitArray()
+
+    while len(bs) > 0:
+        if len(bs) < bits_per_byte:
+            raise ValueError('Invalid data format')
+
+        header_byte = bs[:bits_per_byte]
+        bs = bs[bits_per_byte:]
+
+        gaps = header_byte[:3].uint
+        is_dirty = header_byte[3]
+        special = header_byte[4:].uint
+
+        if gaps > 0:
+            logging.info('Adding gap of size %d', gaps)
+            result += BitArray(uint=0, length=gaps * bits_per_byte)
+
+        if is_dirty:
+            logging.info('Adding offset byte with bit @ %d', special)
+
+            end_bits = bits_per_byte - special - 1
+            result += BitArray(uint=1, length=bits_per_byte - end_bits)
+            result += BitArray(uint=0, length=end_bits)
+        else:
+            logging.info('Adding %d literal bytes', special)
+            lit_bits = special * bits_per_byte
+
+            if len(bs) < lit_bits:
                 raise ValueError('Invalid data format')
 
-            header_byte = bs[:bits_per_byte]
-            bs = bs[bits_per_byte:]
+            result += bs[:lit_bits]
+            bs = bs[lit_bits:]
 
-            gaps = header_byte[:3].uint
-            is_dirty = header_byte[3]
-            special = header_byte[4:].uint
-
-            if gaps > 0:
-                logging.info('Adding gap of size %d', gaps)
-                result += BitArray(uint=0, length=gaps * bits_per_byte)
-
-            if is_dirty:
-                logging.info('Adding offset byte with bit @ %d', special)
-
-                end_bits = bits_per_byte - special - 1
-                result += BitArray(uint=1, length=bits_per_byte - end_bits)
-                result += BitArray(uint=0, length=end_bits)
-            else:
-                logging.info('Adding %d literal bytes', special)
-                lit_bits = special * bits_per_byte
-
-                if len(bs) < lit_bits:
-                    raise ValueError('Invalid data format')
-
-                result += bs[:lit_bits]
-                bs = bs[lit_bits:]
-
-        return result
+    return result

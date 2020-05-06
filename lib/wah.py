@@ -1,12 +1,16 @@
 '''
 Contains the implementation of the word-aligned hybrid (WAH) compression
 algorithm, in addition to WAH-related functions.
+
+The primary difference between this implementation and the WAH patent's
+algorithm description is that literals smaller than the word size are encoded
+by storing the literal in the most significant bits of the output word, then
+padding the right with zeroes.
 '''
 
 import logging
 
 from bitstring import BitArray
-from lib.compression import CompressionBase
 
 
 def run_length(bs: BitArray, word_size: int) -> int:
@@ -103,38 +107,94 @@ def encode_literal(bs: BitArray, word_size: int):
     return bs[section_size:], encoded_literal
 
 
-class WAH(CompressionBase):
+def compress(bs, word_size):
     '''
-    WAH algorithm implementation. The primary difference between this
-    implementation and the WAH patent's algorithm description is that literals
-    smaller than the word size are encoded by storing the literal in the most
-    significant bits of the output word, then padding the right with zeroes.
+    Compress the given bits with WAH compression using the specified word
+    size.
+
+    Args:
+        bs: the bits to compress.
+        word_size: the word size used in the algorithm.
+
+    Returns:
+        a tuple ``(compressed, length)``, where ``compressed`` is the
+        compressed ``bs`` and ``length`` is the number of bits used in the
+        final word of ``compressed``. ``length`` is returned because the
+        value is required when decompressing WAH-compressed data.
     '''
 
-    @staticmethod
-    def compress(bs, word_size=8):
-        logging.info('WAH - compressing %d bits', len(bs))
-        logging.info('Word size: %d', word_size)
-        logging.debug('Bits: %s', bs.bin)
+    if len(bs) == 0:
+        raise ValueError('bs must have a length greater than 0')
+    elif word_size <= 1:
+        raise ValueError('word_size must be at least 2')
 
-        section_size = word_size - 1
-        result = BitArray()
+    logging.info('Compressing %d bits', len(bs))
+    logging.info('Word size: %d', word_size)
+    logging.debug('Bits: %s', bs.bin)
 
-        while len(bs) > 0:
-            run_count = run_length(bs, word_size)
+    section_size = word_size - 1
+    result = BitArray()
+    final_length = word_size
 
-            if run_count == 0:
-                bs, next_word = encode_literal(bs, word_size)
-                logging.info('Found literal')
-                logging.debug('Literal: %s', next_word.bin)
-            else:
-                bs, next_word = encode_run(bs, word_size)
-                logging.info('Found run of size %d', run_count)
+    while len(bs) > 0:
+        run_count = run_length(bs, word_size)
 
-            logging.debug('Next compressed word: %s', next_word.bin)
-            result += next_word
+        if run_count == 0:
+            final_length = min(word_size, len(bs))
+            bs, next_word = encode_literal(bs, word_size)
+            logging.info('Found literal: %s', next_word.bin)
+        else:
+            bs, next_word = encode_run(bs, word_size)
+            logging.info('Found run of size %d', run_count)
 
-        logging.info('Compressed bit count: %d', len(result))
-        logging.debug('Compressed bits: %s', result.bin)
+        logging.debug('Next compressed word: %s', next_word.bin)
+        result += next_word
 
-        return result
+    logging.info('Compressed bit count: %d', len(result))
+    logging.debug('Compressed bits: %s', result.bin)
+
+    return result, final_length
+
+
+def decompress(bs, word_size, final_length):
+    '''
+    Decompress the given WAH-compressed bits with the specified word size.
+    This is the inverse of ``WAH.compress()``.
+
+    Args:
+        bs: the bits to decompress.
+        word_size: the word size used.
+        final_length: the number of bits used in the final word of ``bs``.
+    '''
+
+    if final_length is None:
+        final_length = word_size
+
+    if len(bs) == 0:
+        raise ValueError('bs must have a length greater than 0')
+    elif word_size <= 1:
+        raise ValueError('word_size must be at least 2')
+    elif not 1 <= final_length <= word_size:
+        raise ValueError('final_length must be between 1 and word_size, '
+                         'inclusive')
+
+    result = BitArray()
+
+    while len(bs) > 0:
+        next_word = bs[:word_size]
+        bs[word_size:]
+
+        is_run = next_word[0]
+
+        if is_run:
+            run_type = next_word[1:2]
+            runs = next_word[2:].uint
+            result += run_type * runs
+        elif len(bs) > 0:
+            # end isn't reached, so don't worry about trailing bits
+            result += next_word[1:]
+        else:
+            # final word is reached; only use first ``final_length`` bits
+            result += next_word[1:final_length - 1]
+
+    return result
