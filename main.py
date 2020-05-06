@@ -8,6 +8,7 @@ import os
 import sys
 
 from argparse import ArgumentParser
+from bitstring import BitArray
 
 from lib.wah import WAH
 from lib.bbc import BBC
@@ -55,10 +56,9 @@ def main():
                         filename=args.log_file,
                         filemode='w')
 
-    data = sys.stdin.read().strip()
+    data = BitArray(bytes=sys.stdin.buffer.read().strip())
     compressed = args.compressor.compress(data, word_size=args.word_size)
-
-    print(compressed)
+    sys.stdout.buffer.write(compressed.tobytes())
 
 
 if __name__ == '__main__':

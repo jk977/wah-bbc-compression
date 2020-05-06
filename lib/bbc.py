@@ -7,8 +7,10 @@ for the differences.
 
 import logging
 
+from bitstring import BitArray
+
 from lib.compression import CompressionBase
-from lib.util import all_bits, binstr, chunks_of
+from lib.util import all_bits, chunks_of
 
 
 # BBC compression constants
@@ -19,7 +21,7 @@ header_gap_max = all_bits(header_gap_bits)  # max gap size in header
 max_gap_bits = 2 * bits_per_byte - 1        # max bits used for gap size
 
 
-def get_gaps(bs: str):
+def get_gaps(bs: BitArray):
     '''
     Args:
         bs: the string to check for gaps.
@@ -29,8 +31,8 @@ def get_gaps(bs: str):
         gaps and ``gaps`` is the number of gap bytes to encode.
     '''
 
-    bit_idx = bs.find('1')
-    gap_bits = bit_idx if bit_idx >= 0 else len(bs)
+    bit_idx = bs.find('0b1')
+    gap_bits = bit_idx[0] if bit_idx else len(bs)
     gap_max = all_bits(max_gap_bits)
 
     if gap_bits < bits_per_byte:
@@ -42,7 +44,7 @@ def get_gaps(bs: str):
     return bs[gaps * bits_per_byte:], gaps
 
 
-def dirty_bit_pos(bs: str) -> int:
+def dirty_bit_pos(bs: BitArray) -> int:
     '''
     Checks if the next byte in ``bs`` contains only a single set bit
     (i.e., is an offset, or dirty, byte).
@@ -57,13 +59,13 @@ def dirty_bit_pos(bs: str) -> int:
 
     byte = bs[:bits_per_byte]
 
-    if byte.count('1') != 1:
+    if byte.count(1) != 1:
         return -1
     else:
-        return byte.find('1')
+        return byte.find('0b1')[0]
 
 
-def get_literals(bs: str):
+def get_literals(bs: BitArray):
     '''
     Returns:
         a tuple ``(tail, literals)`` where ``tail`` is ``bs`` without the
@@ -72,11 +74,11 @@ def get_literals(bs: str):
     '''
 
     literal_max = 0b1111
-    literals = ''
+    literals = BitArray()
     count = 0
 
     for byte in chunks_of(bits_per_byte, bs):
-        if byte.count('1') == 0:
+        if byte.count(1) == 0:
             break
 
         literals += byte
@@ -88,7 +90,10 @@ def get_literals(bs: str):
     return bs[count * bits_per_byte:], literals
 
 
-def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
+def create_atom(gaps: int,
+                is_dirty: bool,
+                special: int,
+                literals: BitArray) \
         -> str:
     '''
     Creates the next compressed atom, consisting of a header byte
@@ -114,6 +119,9 @@ def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
                     or if ``gaps`` is too large.
     '''
 
+    if not is_dirty and literals is None:
+        raise ValueError('Expected a value for literals, got None')
+
     # header begins with 3 bits that indicate the number of gap bytes.
     # (if first three bits of header are all set, the remainder of
     # gaps is stored in the bytes after the header.)
@@ -123,27 +131,29 @@ def create_atom(gaps: int, is_dirty: bool, special: int, literals: str = '') \
 
     max_gap_bits = 2 * bits_per_byte - 1
 
-    # binary strings used in header byte
-    header_gap_bin = binstr(header_gap_count, header_gap_bits)
-    special_bin = binstr(special, 4)
-
     # construct the header byte
-    result = f'{header_gap_bin}{1 if is_dirty else 0}{special_bin}'
+    result = BitArray(uint=header_gap_count, length=3)
+    result += BitArray(uint=1 if is_dirty else 0, length=1)
+    result += BitArray(uint=special, length=4)
 
     if header_gap_max <= gaps <= all_bits(bits_per_byte - 1):
         # gap length can be encoded in one byte after header
         logging.debug('One tail byte needed.')
-        result += binstr(gaps, bits_per_byte)
+        result += BitArray(uint=gaps, length=bits_per_byte)
     elif all_bits(bits_per_byte - 1) < gaps <= all_bits(max_gap_bits):
         # gap length can be encoded in two bytes after header
         logging.debug('Two tail bytes needed.')
 
+        upper = gaps >> bits_per_byte
+        lower_mask = (1 << bits_per_byte) - 1
+        lower = gaps & lower_mask
+
         # the first bit of first byte is a flag indicating there's another
         # byte, and the rest of the byte is the upper bits of gaps.
         # the second byte is the lower 8 bits.
-        upper = binstr(gaps >> bits_per_byte, bits_per_byte - 1)
-        lower = binstr(gaps, bits_per_byte)
-        result += f'1{upper}{lower}'
+        result += BitArray(uint=1, length=1)
+        result += BitArray(uint=upper, length=bits_per_byte - 1)
+        result += BitArray(uint=lower, length=bits_per_byte)
     elif gaps > all_bits(max_gap_bits):
         raise ValueError(f'gaps too large ({gaps} > {all_bits(max_gap_bits)})')
 
@@ -172,9 +182,9 @@ class BBC(CompressionBase):
     @staticmethod
     def compress(bs, word_size=None):
         logging.info('Compressing %d bits with BBC', len(bs))
-        logging.debug('Bits: %s', bs)
+        logging.debug('Bits: %s', bs.bin)
 
-        result = ''
+        result = BitArray()
 
         while len(bs) > 0:
             bs, gaps = get_gaps(bs)
@@ -185,7 +195,7 @@ class BBC(CompressionBase):
             # get the byte after next to determine whether or not an offset
             # byte should be treated as a literal
             lookahead_byte = bs[bits_per_byte:2 * bits_per_byte]
-            offset_as_literal = lookahead_byte.count('1') > 0
+            offset_as_literal = lookahead_byte.count(1) > 0
 
             # determine the type of byte following the gaps
             dirty_bit = dirty_bit_pos(bs)
@@ -194,7 +204,7 @@ class BBC(CompressionBase):
             if is_dirty:
                 # skip past the offset byte without encoding literals,
                 # storing the dirty bit position in ``special``
-                bs, literals = bs[bits_per_byte:], ''
+                bs, literals = bs[bits_per_byte:], BitArray()
                 special = dirty_bit
                 logging.info('Offset byte found: bit @ %d', dirty_bit)
             else:
@@ -206,9 +216,11 @@ class BBC(CompressionBase):
 
             atom = create_atom(gaps, is_dirty, special, literals)
             logging.info('Created atom of length %d', len(atom))
-            logging.debug('Atom: %s', atom)
+            logging.debug('Atom: %s', atom.bin)
 
             result += atom
 
         logging.info('Compressed bit count: %d', len(result))
+        logging.debug('Compressed bits: %s', result.bin)
+
         return result
