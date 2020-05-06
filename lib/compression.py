@@ -27,3 +27,20 @@ class CompressionBase(ABC):
         '''
 
         pass
+
+    @staticmethod
+    @abstractmethod
+    def decompress(bs: BitArray, word_size) -> BitArray:
+        '''
+        Decompress the given bitmap index with the specified word size,
+        if applicable. This is the inverse of ``compress()``.
+
+        Args:
+            bs: the bits to compress.
+            word_size: the word size used in the algorithm.
+
+        Returns:
+            the decompressed ``bs``.
+        '''
+
+        pass

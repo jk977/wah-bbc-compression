@@ -58,7 +58,7 @@ def main():
 
     data = BitArray(bytes=sys.stdin.buffer.read().strip())
     compressed = args.compressor.compress(data, word_size=args.word_size)
-    sys.stdout.buffer.write(compressed.tobytes())
+    sys.stdout.buffer.write(compressed.bytes)
 
 
 if __name__ == '__main__':

@@ -223,3 +223,43 @@ class BBC(CompressionBase):
         logging.debug('Compressed bits: %s', result.bin)
 
         return result
+
+    @staticmethod
+    def decompress(bs, word_size=None):
+        logging.info('Decompressing %d bits with BBC', len(bs))
+        logging.debug('Bits: %s', bs.bin)
+
+        result = BitArray()
+
+        while len(bs) > 0:
+            if len(bs) < bits_per_byte:
+                raise ValueError('Invalid data format')
+
+            header_byte = bs[:bits_per_byte]
+            bs = bs[bits_per_byte:]
+
+            gaps = header_byte[:3].uint
+            is_dirty = header_byte[3]
+            special = header_byte[4:].uint
+
+            if gaps > 0:
+                logging.info('Adding gap of size %d', gaps)
+                result += BitArray(uint=0, length=gaps * bits_per_byte)
+
+            if is_dirty:
+                logging.info('Adding offset byte with bit @ %d', special)
+
+                end_bits = bits_per_byte - special - 1
+                result += BitArray(uint=1, length=bits_per_byte - end_bits)
+                result += BitArray(uint=0, length=end_bits)
+            else:
+                logging.info('Adding %d literal bytes', special)
+                lit_bits = special * bits_per_byte
+
+                if len(bs) < lit_bits:
+                    raise ValueError('Invalid data format')
+
+                result += bs[:lit_bits]
+                bs = bs[lit_bits:]
+
+        return result
