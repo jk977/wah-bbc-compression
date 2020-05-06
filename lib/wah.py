@@ -140,7 +140,7 @@ def compress(bs, word_size):
         run_count = run_length(bs, word_size)
 
         if run_count == 0:
-            final_length = min(word_size, len(bs))
+            final_length = min(word_size, len(bs) + 1)
             bs, next_word = encode_literal(bs, word_size)
             logging.info('Found literal: %s', next_word.bin)
         else:
@@ -156,7 +156,7 @@ def compress(bs, word_size):
     return result, final_length
 
 
-def decompress(bs, word_size, final_length):
+def decompress(bs, final_length, word_size):
     '''
     Decompress the given WAH-compressed bits with the specified word size.
     This is the inverse of ``WAH.compress()``.
@@ -184,17 +184,24 @@ def decompress(bs, word_size, final_length):
         next_word = bs[:word_size]
         bs = bs[word_size:]
 
+        logging.info('Decompressing word: %s', next_word.bin)
         is_run = next_word[0]
 
         if is_run:
-            run_type = next_word[1:2]
+            run_type = next_word[1]
             runs = next_word[2:].uint
-            result += run_type * runs
-        elif len(bs) > 0:
-            # end isn't reached, so don't worry about trailing bits
-            result += next_word[1:]
+            logging.info('Expanding %d-run of length %d', run_type, runs)
+
+            result += [run_type] * runs
         else:
-            # final word is reached; only use first ``final_length`` bits
-            result += next_word[1:final_length - 1]
+            if len(bs) > 0:
+                # end isn't reached, so don't worry about trailing bits
+                lit = next_word[1:]
+            else:
+                # final word is reached; only use first ``final_length`` bits
+                lit = next_word[1:final_length]
+
+            logging.info('Adding literal: %s', lit.bin)
+            result += lit
 
     return result
