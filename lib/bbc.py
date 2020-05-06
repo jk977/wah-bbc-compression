@@ -1,5 +1,5 @@
 '''
-Contains an implementation of the byte-aligned bitmap compression (BBC)
+Contains an implementation of the byte-aligned bitmap code (BBC) compression
 algorithm, in addition to BBC-related utility functions. The algorithm
 has been modified from the original; see the ``BBC`` class documentation
 for the differences.

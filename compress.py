@@ -34,7 +34,8 @@ def _process_args():
     algos.add_argument('--wah', dest='algorithm', action='store_const',
                        const='WAH', help='Word-aligned hybrid compression')
     algos.add_argument('--bbc', dest='algorithm', action='store_const',
-                       const='BBC', help='Byte-aligned bitmap compression')
+                       const='BBC', help='Byte-aligned bitmap code '
+                       'compression')
 
     logs.add_argument('--log-level', type=str, dest='log_level',
                       default='WARNING', help='Log level (default: WARNING; '

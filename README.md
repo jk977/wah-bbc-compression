@@ -2,7 +2,7 @@
 
 ## About
 
-This project implements the word-aligned hybrid (WAH) compression algorithm and a modified version of the byte-aligned bitmap compression (BBC) algorithm.
+This project implements the word-aligned hybrid (WAH) compression algorithm and a modified version of the byte-aligned bitmap code (BBC) compression algorithm.
 
 ## Requirements
 
@@ -20,6 +20,12 @@ The source code for the compression algorithms are located in `lib/wah.py` and `
 The `wah` and `bbc` modules both have `compress()` and `decompress()` methods that take a `BitArray` containing the data to compress and returns the compressed `BitArray`. The `wah` module also requires an additional parameter: the word size to be used in the compression algorithm. See the module's documentation for more details.
 
 There is a command-line interface for the `compress()` methods implemented in `compress.py`, which also serves as an example of how the methods in the aforementioned source files can be used. For `compress.py` usage, run `python compress.py --help`.
+
+## Tests
+
+Unit tests are present in `test_bbc.py` and `test_wah.py`, testing WAH and BBC compression, respectively.
+
+The compression algorithms may also be fuzzed using `fuzz.py`. This module has functions for generating random strings and passing them to the algorithm implementations. If ran as a standalone script, it fuzzes WAH and BBC in two phases: first using a high volume of short inputs, then using a low volume of long inputs. All WAH word sizes between 2 and 64 (inclusive) are fuzzed.
 
 ## Notes
 
