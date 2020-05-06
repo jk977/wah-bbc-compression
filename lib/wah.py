@@ -94,7 +94,11 @@ def encode_literal(bs: BitArray, word_size: int):
     # create a string beginning with 0, followed by the literal padded to
     # become exactly one word long
     encoded_literal = BitArray(uint=0, length=1)
-    encoded_literal += BitArray(uint=literal.uint, length=section_size)
+    encoded_literal += literal
+
+    if len(literal) < section_size:
+        remaining_bits = section_size - len(literal)
+        encoded_literal += BitArray(uint=0, length=remaining_bits)
 
     return bs[section_size:], encoded_literal
 
