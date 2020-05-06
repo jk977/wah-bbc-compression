@@ -85,6 +85,9 @@ def encode_literal(bs: BitArray, word_size: int):
         ``literal`` is padded with zeroes on the right.
     '''
 
+    if len(bs) == 0:
+        return bs, BitArray(uint=0, length=word_size)
+
     section_size = word_size - 1
     literal = bs[:section_size]
 
