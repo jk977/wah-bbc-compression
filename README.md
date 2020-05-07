@@ -11,12 +11,7 @@ This project implements the word-aligned hybrid (WAH) compression algorithm and 
 
 ## Usage
 
-The source code for the compression algorithms are located in `lib/wah.py` and `lib/bbc.py`. To import these into a Python script, include the following lines:
-
-```py
-import lib.wah as wah
-import lib.bbc as bbc
-```
+The source code for the compression algorithms are located in `lib/wah.py` and `lib/bbc.py`. See Examples for examples on using these modules.
 
 The `wah` and `bbc` modules both have `compress()` and `decompress()` methods that take a `BitArray` containing the data to compress and returns the compressed `BitArray`. The `wah` module also requires an additional parameter: the word size to be used in the compression algorithm. See the module's documentation for more details.
 
@@ -27,6 +22,56 @@ There is a command-line interface for the `compress()` methods implemented in `c
 Unit tests are present in `test_bbc.py` and `test_wah.py`, testing WAH and BBC compression, respectively.
 
 The compression algorithms may also be fuzzed using `fuzz.py`. This module has functions for generating random strings and passing them to the algorithm implementations. If ran as a standalone script, it fuzzes WAH and BBC in two phases: first using a high volume of short inputs, then using a low volume of long inputs. All WAH word sizes between 2 and 64 (inclusive) are fuzzed.
+
+## Examples
+
+These examples build off of the following imports:
+
+```
+>>> from bitstring import BitArray
+>>> import lib.wah as wah
+>>> import lib.bbc as bbc
+```
+
+### WAH
+
+To compress a string:
+
+```
+>>> s = 'Hello, world!'
+>>> bs = BitArray(bytes=s.encode(encoding='ascii'))
+>>> compressed, final_bits = wah.compress(bs, word_size=8)
+>>> print(compressed.bin)
+001001000001100100101101010001100110001100111100010110000010000000111011010110110110111000100110011000110001000001000010
+```
+
+To decompress `compressed`, `final_bits` is required since it tells the algorithm where to stop on the last compressed byte:
+
+```
+>>> decompressed = wah.decompress(compressed, final_bits, word_size)
+>>> print(decompressed.bytes)
+b'Hello, world!'
+```
+
+### BBC
+
+To compress a string:
+
+```
+>>> s = 'Goodbye, world!'
+>>> bs = BitArray(bytes=s.encode(encoding='ascii'))
+>>> compressed = bbc.compress(bs)
+>>> print(compressed.bin)
+0000110101001000011001010110110001101100011011110010110000100000011101110110111101110010011011000110010000100001
+```
+
+To decompress `compressed`:
+
+```
+>>> decompressed = bbc.decompress(compressed)
+>>> print(decompressed.bytes)
+b'Goodbye, world!'
+```
 
 ## Notes
 
